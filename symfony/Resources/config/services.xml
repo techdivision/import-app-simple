@@ -10,7 +10,7 @@
         <service id="configuration" synthetic="true" />
         <service id="service_container" synthetic="true" />
 
-        <service id="simple" class="TechDivision\Import\Cli\Simple">
+        <service id="simple" class="TechDivision\Import\App\Simple">
             <argument type="service" id="service_container"/>
             <argument type="service" id="import.processor.registry"/>
             <argument type="service" id="import.processor.import"/>
