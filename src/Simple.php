@@ -101,6 +101,7 @@ class Simple implements ApplicationInterface
      */
     protected static $defaultLibraries = array(
         'ce' => array(
+            'techdivision/import-app-simple',
             'techdivision/import',
             'techdivision/import-category',
             'techdivision/import-product',
@@ -110,6 +111,7 @@ class Simple implements ApplicationInterface
             'techdivision/import-product-variant'
         ),
         'ee' => array(
+            'techdivision/import-app-simple',
             'techdivision/import',
             'techdivision/import-ee',
             'techdivision/import-category',
