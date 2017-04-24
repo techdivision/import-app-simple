@@ -29,9 +29,9 @@ use Symfony\Component\DependencyInjection\TaggedContainerInterface;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\RegistryKeys;
 use TechDivision\Import\Utils\EntityTypeCodes;
+use TechDivision\Import\App\Utils\SynteticServiceKeys;
 use TechDivision\Import\ApplicationInterface;
 use TechDivision\Import\ConfigurationInterface;
-use TechDivision\Import\App\Utils\SynteticServiceKeys;
 use TechDivision\Import\Exceptions\LineNotFoundException;
 use TechDivision\Import\Exceptions\FileNotFoundException;
 use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
@@ -101,6 +101,7 @@ class Simple implements ApplicationInterface
      */
     protected static $defaultLibraries = array(
         'ce' => array(
+            'techdivision/import-app-simple',
             'techdivision/import',
             'techdivision/import-category',
             'techdivision/import-product',
@@ -110,6 +111,7 @@ class Simple implements ApplicationInterface
             'techdivision/import-product-variant'
         ),
         'ee' => array(
+            'techdivision/import-app-simple',
             'techdivision/import',
             'techdivision/import-ee',
             'techdivision/import-category',
