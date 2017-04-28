@@ -81,7 +81,8 @@ class Simple implements ApplicationInterface
      */
     protected static $defaultDirectories = array(
         EntityTypeCodes::CATALOG_PRODUCT  => 'products',
-        EntityTypeCodes::CATALOG_CATEGORY => 'categories'
+        EntityTypeCodes::CATALOG_CATEGORY => 'categories',
+        EntityTypeCodes::EAV_ATTRIBUTE => 'attributes'
     );
 
     /**
@@ -91,7 +92,8 @@ class Simple implements ApplicationInterface
      */
     protected static $defaultConfigurations = array(
         EntityTypeCodes::CATALOG_PRODUCT  => 'techdivision/import-product',
-        EntityTypeCodes::CATALOG_CATEGORY => 'techdivision/import-category'
+        EntityTypeCodes::CATALOG_CATEGORY => 'techdivision/import-category',
+        EntityTypeCodes::EAV_ATTRIBUTE => 'techdivision/import-attribute'
     );
 
     /**
@@ -103,6 +105,7 @@ class Simple implements ApplicationInterface
         'ce' => array(
             'techdivision/import-app-simple',
             'techdivision/import',
+            'techdivision/import-attribute',
             'techdivision/import-category',
             'techdivision/import-product',
             'techdivision/import-product-bundle',
@@ -419,7 +422,7 @@ class Simple implements ApplicationInterface
         // throw an exception, if the passed entity type is not supported
         throw new \Exception(
             sprintf(
-                'Entity Type Code \'%s\' not supported (MUST be one of catalog_product or catalog_category)',
+                'Entity Type Code \'%s\' not supported (MUST be one of catalog_product, catalog_category or eav_attribute)',
                 $entityTypeCode
             )
         );
