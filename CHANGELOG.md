@@ -1,3 +1,13 @@
+# Version 1.0.0-beta3
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Move configuration functionality to techdivision/import-cli-simple library
+
 # Version 1.0.0-beta2
 
 ## Bugfixes
