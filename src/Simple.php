@@ -541,6 +541,7 @@ class Simple implements ApplicationInterface
             $this->setUp();
 
             // process the plugins defined in the configuration
+            /** @var \TechDivision\Import\Configuration\PluginConfigurationInterface $pluginConfiguration */
             foreach ($this->getConfiguration()->getPlugins() as $pluginConfiguration) {
                 // query whether or not the operation has been stopped
                 if ($this->isStopped()) {
@@ -663,12 +664,26 @@ class Simple implements ApplicationInterface
      *
      * @param \TechDivision\Import\Configuration\PluginConfigurationInterface $pluginConfiguration The plugin configuration instance
      *
-     * @return object The plugin instance
+     * @return \TechDivision\Import\Plugins\PluginInterface The plugin instance
      */
     protected function pluginFactory(PluginConfigurationInterface $pluginConfiguration)
     {
-        $this->getContainer()->set(sprintf('configuration.%s', $id = $pluginConfiguration->getId()), $pluginConfiguration);
-        return $this->getContainer()->get($id);
+
+        // load the DI container instance
+        $container = $this->getContainer();
+
+        // set the configuration
+        $container->set(
+            sprintf(
+                '%s.%s',
+                SynteticServiceKeys::CONFIGURATION,
+                $id = $pluginConfiguration->getId()
+            ),
+            $pluginConfiguration
+        );
+
+        // return the plugin instance
+        return $container->get($id);
     }
 
     /**
