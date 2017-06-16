@@ -28,7 +28,7 @@ use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\DependencyInjection\TaggedContainerInterface;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\RegistryKeys;
-use TechDivision\Import\App\Utils\SynteticServiceKeys;
+use TechDivision\Import\App\Utils\DependencyInjectionKeys;
 use TechDivision\Import\ApplicationInterface;
 use TechDivision\Import\ConfigurationInterface;
 use TechDivision\Import\Exceptions\LineNotFoundException;
@@ -676,7 +676,7 @@ class Simple implements ApplicationInterface
         $container->set(
             sprintf(
                 '%s.%s',
-                SynteticServiceKeys::CONFIGURATION,
+                DependencyInjectionKeys::CONFIGURATION,
                 $id = $pluginConfiguration->getId()
             ),
             $pluginConfiguration
@@ -705,7 +705,7 @@ class Simple implements ApplicationInterface
         if ($this->getConfiguration()->isDebugMode()) {
             // load the application from the DI container
             /** @var TechDivision\Import\App\Application $application */
-            $application = $this->getContainer()->get(SynteticServiceKeys::APPLICATION);
+            $application = $this->getContainer()->get(DependencyInjectionKeys::SIMPLE);
             // log the system's PHP configuration
             $this->log(sprintf('PHP version: %s', phpversion()), LogLevel::DEBUG);
             $this->log(sprintf('App version: %s', $application->getVersion()), LogLevel::DEBUG);

@@ -1,3 +1,14 @@
+# Version 1.0.0-beta6
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Rename class SynteticServiceKeys to DependencyInjectionKeys
+* DependencyInjectionKeys now extends same class from techdivision/import library
+
 # Version 1.0.0-beta5
 
 ## Bugfixes
