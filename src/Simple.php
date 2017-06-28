@@ -31,6 +31,7 @@ use TechDivision\Import\Utils\RegistryKeys;
 use TechDivision\Import\App\Utils\DependencyInjectionKeys;
 use TechDivision\Import\ApplicationInterface;
 use TechDivision\Import\ConfigurationInterface;
+use TechDivision\Import\Plugins\PluginFactoryInterface;
 use TechDivision\Import\Exceptions\LineNotFoundException;
 use TechDivision\Import\Exceptions\FileNotFoundException;
 use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
@@ -167,13 +168,21 @@ class Simple implements ApplicationInterface
     protected $fh;
 
     /**
+     * The plugin factory instance.
+     *
+     * @var \TechDivision\Import\Plugins\PluginFactoryInterface
+     */
+    protected $pluginFactory;
+
+    /**
      * The constructor to initialize the instance.
      *
      * @param \Symfony\Component\DependencyInjection\TaggedContainerInterface $container         The DI container instance
      * @param \TechDivision\Import\Services\RegistryProcessorInterface        $registryProcessor The registry processor instance
      * @param \TechDivision\Import\Services\ImportProcessorInterface          $importProcessor   The import processor instance
      * @param \TechDivision\Import\ConfigurationInterface                     $configuration     The system configuration
-     * @param \Symfony\Component\Console\Output\OutputInterface               $output            An OutputInterface instance
+     * @param \TechDivision\Import\Plugins\PluginFactoryInterface             $pluginFactory     The plugin factory instance
+     * @param \Symfony\Component\Console\Output\OutputInterface               $output            The output instance
      * @param array                                                           $systemLoggers     The array with the system logger instances
      */
     public function __construct(
@@ -181,6 +190,7 @@ class Simple implements ApplicationInterface
         RegistryProcessorInterface $registryProcessor,
         ImportProcessorInterface $importProcessor,
         ConfigurationInterface $configuration,
+        PluginFactoryInterface $pluginFactory,
         OutputInterface $output,
         array $systemLoggers
     ) {
@@ -193,6 +203,7 @@ class Simple implements ApplicationInterface
         $this->setContainer($container);
         $this->setConfiguration($configuration);
         $this->setSystemLoggers($systemLoggers);
+        $this->setPluginFactory($pluginFactory);
         $this->setImportProcessor($importProcessor);
         $this->setRegistryProcessor($registryProcessor);
     }
@@ -317,6 +328,28 @@ class Simple implements ApplicationInterface
     public function setSystemLoggers(array $systemLoggers)
     {
         $this->systemLoggers = $systemLoggers;
+    }
+
+    /**
+     * Set's the plugin factory instance.
+     *
+     * @param \TechDivision\Import\Plugins\PluginFactoryInterface $pluginFactory The plugin factory instance
+     *
+     * @return void
+     */
+    public function setPluginFactory(PluginFactoryInterface $pluginFactory)
+    {
+        $this->pluginFactory = $pluginFactory;
+    }
+
+    /**
+     * Return's the plugin factory instance.
+     *
+     * @return \TechDivision\Import\Plugins\PluginFactoryInterface The plugin factory instance
+     */
+    public function getPluginFactory()
+    {
+        return $this->pluginFactory;
     }
 
     /**
@@ -548,7 +581,7 @@ class Simple implements ApplicationInterface
                     break;
                 }
                 // process the plugin if not
-                $this->pluginFactory($pluginConfiguration)->process();
+                $this->pluginFactory->createPlugin($pluginConfiguration)->process();
             }
 
             // tear down the  instance
@@ -660,30 +693,34 @@ class Simple implements ApplicationInterface
     }
 
     /**
-     * Factory method to create new plugin instances.
+     * Finds an entry of the container by its identifier and returns it.
      *
-     * @param \TechDivision\Import\Configuration\PluginConfigurationInterface $pluginConfiguration The plugin configuration instance
+     * @param string $id Identifier of the entry to look for.
      *
-     * @return \TechDivision\Import\Plugins\PluginInterface The plugin instance
+     * @throws NotFoundExceptionInterface  No entry was found for **this** identifier.
+     * @throws ContainerExceptionInterface Error while retrieving the entry.
+     *
+     * @return mixed Entry.
      */
-    protected function pluginFactory(PluginConfigurationInterface $pluginConfiguration)
+    public function get($id)
     {
+        return $this->getContainer()->get($id);
+    }
 
-        // load the DI container instance
-        $container = $this->getContainer();
-
-        // set the configuration
-        $container->set(
-            sprintf(
-                '%s.%s',
-                DependencyInjectionKeys::CONFIGURATION,
-                $id = $pluginConfiguration->getId()
-            ),
-            $pluginConfiguration
-        );
-
-        // return the plugin instance
-        return $container->get($id);
+    /**
+     * Returns true if the container can return an entry for the given identifier.
+     * Returns false otherwise.
+     *
+     * `has($id)` returning true does not mean that `get($id)` will not throw an exception.
+     * It does however mean that `get($id)` will not throw a `NotFoundExceptionInterface`.
+     *
+     * @param string $id Identifier of the entry to look for.
+     *
+     * @return bool
+     */
+    public function has($id)
+    {
+        return $this->getContainer()->has($id);
     }
 
     /**
@@ -705,7 +742,7 @@ class Simple implements ApplicationInterface
         if ($this->getConfiguration()->isDebugMode()) {
             // load the application from the DI container
             /** @var TechDivision\Import\App\Application $application */
-            $application = $this->getContainer()->get(DependencyInjectionKeys::SIMPLE);
+            $application = $this->getContainer()->get(DependencyInjectionKeys::APPLICATION);
             // log the system's PHP configuration
             $this->log(sprintf('PHP version: %s', phpversion()), LogLevel::DEBUG);
             $this->log(sprintf('App version: %s', $application->getVersion()), LogLevel::DEBUG);
