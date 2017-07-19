@@ -21,8 +21,8 @@
 namespace TechDivision\Import\App;
 
 use Rhumsaa\Uuid\Uuid;
-use Monolog\Logger;
 use Psr\Log\LogLevel;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\DependencyInjection\TaggedContainerInterface;
@@ -35,7 +35,6 @@ use TechDivision\Import\Plugins\PluginFactoryInterface;
 use TechDivision\Import\Exceptions\LineNotFoundException;
 use TechDivision\Import\Exceptions\FileNotFoundException;
 use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
-use TechDivision\Import\Configuration\PluginConfigurationInterface;
 use TechDivision\Import\Services\ImportProcessorInterface;
 use TechDivision\Import\Services\RegistryProcessorInterface;
 
@@ -107,7 +106,7 @@ class Simple implements ApplicationInterface
     /**
      * The array with the system logger instances.
      *
-     * @var array
+     * @var \Doctrine\Common\Collections\Collection
      */
     protected $systemLoggers;
 
@@ -183,7 +182,7 @@ class Simple implements ApplicationInterface
      * @param \TechDivision\Import\ConfigurationInterface                     $configuration     The system configuration
      * @param \TechDivision\Import\Plugins\PluginFactoryInterface             $pluginFactory     The plugin factory instance
      * @param \Symfony\Component\Console\Output\OutputInterface               $output            The output instance
-     * @param array                                                           $systemLoggers     The array with the system logger instances
+     * @param \Doctrine\Common\Collections\Collection                         $systemLoggers     The array with the system logger instances
      */
     public function __construct(
         TaggedContainerInterface $container,
@@ -192,7 +191,7 @@ class Simple implements ApplicationInterface
         ConfigurationInterface $configuration,
         PluginFactoryInterface $pluginFactory,
         OutputInterface $output,
-        array $systemLoggers
+        Collection $systemLoggers
     ) {
 
         // register the shutdown function
@@ -321,11 +320,11 @@ class Simple implements ApplicationInterface
     /**
      * The array with the system loggers.
      *
-     * @param array $systemLoggers The system logger instances
+     * @param \Doctrine\Common\Collections\Collection $systemLoggers The system logger instances
      *
      * @return void
      */
-    public function setSystemLoggers(array $systemLoggers)
+    public function setSystemLoggers(Collection $systemLoggers)
     {
         $this->systemLoggers = $systemLoggers;
     }
@@ -392,7 +391,7 @@ class Simple implements ApplicationInterface
     /**
      * Return's the array with the system logger instances.
      *
-     * @return array The logger instance
+     * @return \Doctrine\Common\Collections\Collection The logger instance
      */
     public function getSystemLoggers()
     {
@@ -693,14 +692,14 @@ class Simple implements ApplicationInterface
     }
 
     /**
-     * Finds an entry of the container by its identifier and returns it.
+     * Gets a service.
      *
-     * @param string $id Identifier of the entry to look for.
+     * @param string $id The service identifier
      *
-     * @throws NotFoundExceptionInterface  No entry was found for **this** identifier.
-     * @throws ContainerExceptionInterface Error while retrieving the entry.
+     * @return object The associated service
      *
-     * @return mixed Entry.
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException When a circular reference is detected
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException          When the service is not defined
      */
     public function get($id)
     {

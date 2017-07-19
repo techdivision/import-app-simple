@@ -1,3 +1,23 @@
+# Version 1.0.0-beta8
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Replace array with system loggers with a collection
+
+# Version 1.0.0-beta7
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Using plugin factory instead of pluginFactory() method 
+
 # Version 1.0.0-beta7
 
 ## Bugfixes

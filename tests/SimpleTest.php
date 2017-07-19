@@ -20,6 +20,8 @@
 
 namespace TechDivision\Import\App;
 
+use Doctrine\Common\Collections\ArrayCollection;
+
 /**
  * Test class for the simple, single-threaded, importer implementation.
  *
@@ -35,7 +37,7 @@ class SimpleTest extends \PHPUnit_Framework_TestCase
     /**
      * The instance to be tested.
      *
-     * @var TechDivision\Import\App\Simple
+     * @var \TechDivision\Import\App\Simple
      */
     protected $instance;
 
@@ -89,7 +91,7 @@ class SimpleTest extends \PHPUnit_Framework_TestCase
             $mockConfiguration,
             $mockPluginFactory,
             $mockOutput,
-            array()
+            new ArrayCollection()
         );
     }
 
