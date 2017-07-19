@@ -16,16 +16,6 @@
 
 ## Features
 
-* Using plugin factory instead of pluginFactory() method 
-
-# Version 1.0.0-beta7
-
-## Bugfixes
-
-* None
-
-## Features
-
 * Using plugin factory instead of pluginFactory() method
 
 # Version 1.0.0-beta6
