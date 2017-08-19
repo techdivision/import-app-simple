@@ -1,3 +1,13 @@
+# Version 1.0.0-beta9
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Move DependencyInjectionKeys class to symfony folder
+
 # Version 1.0.0-beta8
 
 ## Bugfixes
