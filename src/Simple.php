@@ -758,8 +758,9 @@ class Simple implements ApplicationInterface
         // log a message that import has been started
         $this->log(
             sprintf(
-                'Now start import with serial %s (operation: %s)',
+                'Now start import with serial %s [%s => %s]',
                 $this->getSerial(),
+                $this->getConfiguration()->getEntityTypeCode(),
                 $this->getConfiguration()->getOperationName()
             ),
             LogLevel::INFO
