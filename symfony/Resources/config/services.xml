@@ -13,6 +13,7 @@
             <argument type="service" id="import.plugin.factory"/>
             <argument type="service" id="output"/>
             <argument type="service" id="loggers"/>
+            <argument type="service" id="import.events.emitter"/>
         </service>
 
     </services>

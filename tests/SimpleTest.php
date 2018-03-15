@@ -83,6 +83,11 @@ class SimpleTest extends \PHPUnit_Framework_TestCase
                                   ->setMethods(get_class_methods('Symfony\Component\Console\Output\OutputInterface'))
                                   ->getMock();
 
+        // mock the event emitter
+        $mockEmitter = $this->getMockBuilder('League\Event\EmitterInterface')
+                            ->setMethods(\get_class_methods('League\Event\EmitterInterface'))
+                            ->getMock();
+
         // create the subject to be tested
         $this->instance = new Simple(
             $mockContainer,
@@ -91,7 +96,8 @@ class SimpleTest extends \PHPUnit_Framework_TestCase
             $mockConfiguration,
             $mockPluginFactory,
             $mockOutput,
-            new ArrayCollection()
+            new ArrayCollection(),
+            $mockEmitter
         );
     }
 
