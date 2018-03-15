@@ -1,3 +1,13 @@
+# Version 1.0.0-beta11
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Add events before and after the single transaction start's
+
 # Version 1.0.0-beta10
 
 ## Bugfixes

@@ -20,13 +20,15 @@
 
 namespace TechDivision\Import\App;
 
-use Rhumsaa\Uuid\Uuid;
 use Psr\Log\LogLevel;
+use Rhumsaa\Uuid\Uuid;
+use League\Event\EmitterInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\DependencyInjection\TaggedContainerInterface;
 use TechDivision\Import\Utils\LoggerKeys;
+use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\Utils\RegistryKeys;
 use TechDivision\Import\App\Utils\DependencyInjectionKeys;
 use TechDivision\Import\ApplicationInterface;
@@ -174,6 +176,13 @@ class Simple implements ApplicationInterface
     protected $pluginFactory;
 
     /**
+     * The event emitter instance.
+     *
+     * @var \League\Event\EmitterInterface
+     */
+    protected $emitter;
+
+    /**
      * The constructor to initialize the instance.
      *
      * @param \Symfony\Component\DependencyInjection\TaggedContainerInterface $container         The DI container instance
@@ -183,6 +192,7 @@ class Simple implements ApplicationInterface
      * @param \TechDivision\Import\Plugins\PluginFactoryInterface             $pluginFactory     The plugin factory instance
      * @param \Symfony\Component\Console\Output\OutputInterface               $output            The output instance
      * @param \Doctrine\Common\Collections\Collection                         $systemLoggers     The array with the system logger instances
+     * @param \League\Event\EmitterInterface                                  $emitter           The event emitter instance
      */
     public function __construct(
         TaggedContainerInterface $container,
@@ -191,7 +201,8 @@ class Simple implements ApplicationInterface
         ConfigurationInterface $configuration,
         PluginFactoryInterface $pluginFactory,
         OutputInterface $output,
-        Collection $systemLoggers
+        Collection $systemLoggers,
+        EmitterInterface $emitter
     ) {
 
         // register the shutdown function
@@ -199,12 +210,35 @@ class Simple implements ApplicationInterface
 
         // initialize the instance with the passed values
         $this->setOutput($output);
+        $this->setEmitter($emitter);
         $this->setContainer($container);
         $this->setConfiguration($configuration);
         $this->setSystemLoggers($systemLoggers);
         $this->setPluginFactory($pluginFactory);
         $this->setImportProcessor($importProcessor);
         $this->setRegistryProcessor($registryProcessor);
+    }
+
+    /**
+     * Set's the event emitter instance.
+     *
+     * @param \League\Event\EmitterInterface $emitter The event emitter instance
+     *
+     * @return void
+     */
+    public function setEmitter(EmitterInterface $emitter)
+    {
+        $this->emitter = $emitter;
+    }
+
+    /**
+     * Return's the event emitter instance.
+     *
+     * @return \League\Event\EmitterInterface The event emitter instance
+     */
+    public function getEmitter()
+    {
+        return $this->emitter;
     }
 
     /**
@@ -566,8 +600,14 @@ class Simple implements ApplicationInterface
             // track the start time
             $startTime = microtime(true);
 
-            // start the transaction
-            $this->getImportProcessor()->getConnection()->beginTransaction();
+            // invoke the event that has to be fired before the application start's the transaction
+            // (if single transaction mode has been activated)
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_START, $this);
+
+            // start the transaction, if single transaction mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->beginTransaction();
+            }
 
             // prepare the global data for the import process
             $this->setUp();
@@ -586,8 +626,10 @@ class Simple implements ApplicationInterface
             // tear down the  instance
             $this->tearDown();
 
-            // commit the transaction
-            $this->getImportProcessor()->getConnection()->commit();
+            // commit the transaction, if single transation mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->commit();
+            }
 
             // track the time needed for the import in seconds
             $endTime = microtime(true) - $startTime;
@@ -602,12 +644,22 @@ class Simple implements ApplicationInterface
                 LogLevel::INFO
             );
 
+            // invoke the event that has to be fired before the application has the transaction
+            // committed successfully (if single transaction mode has been activated)
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
+
         } catch (ImportAlreadyRunningException $iare) {
             // tear down
             $this->tearDown();
 
-            // rollback the transaction
-            $this->getImportProcessor()->getConnection()->rollBack();
+            // rollback the transaction, if single transaction mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->rollBack();
+            }
+
+            // invoke the event that has to be fired after the application rollbacked the
+            // transaction (if single transaction mode has been activated)
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $iare);
 
             // finally, if a PID has been set (because CSV files has been found),
             // remove it from the PID file to unlock the importer
@@ -635,8 +687,14 @@ class Simple implements ApplicationInterface
             // tear down
             $this->tearDown();
 
-            // rollback the transaction
-            $this->getImportProcessor()->getConnection()->rollBack();
+            // rollback the transaction, if single transaction mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->rollBack();
+            }
+
+            // invoke the event that has to be fired after the application rollbacked the
+            // transaction (if single transaction mode has been activated)
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $e);
 
             // finally, if a PID has been set (because CSV files has been found),
             // remove it from the PID file to unlock the importer
