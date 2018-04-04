@@ -7,5 +7,6 @@
  [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/techdivision/import-app-simple/master.svg?style=flat-square)](https://scrutinizer-ci.com/g/techdivision/import-app-simple/?branch=master)
  [![Code Coverage](https://img.shields.io/scrutinizer/coverage/g/techdivision/import-app-simple/master.svg?style=flat-square)](https://scrutinizer-ci.com/g/techdivision/import-app-simple/?branch=master)
 
-This library provides a simple import application implementation to import data
-in an existing Magento 2 CE/EE instance.
+This library provides a simple import application implementation to import data in an existing Magento 2 CE/EE instance.
+
+Please visit the M2IF [website](https://m2if.com) for documentation and additional information
