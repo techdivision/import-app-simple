@@ -20,6 +20,7 @@
 
 namespace TechDivision\Import\App;
 
+use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Rhumsaa\Uuid\Uuid;
 use League\Event\EmitterInterface;
@@ -390,7 +391,7 @@ class Simple implements ApplicationInterface
      *
      * @param string $name The name of the requested system logger
      *
-     * @return \Psr\Log\LoggerInterface The logger instance
+     * @return LoggerInterface The logger instance
      * @throws \Exception Is thrown, if the requested logger is NOT available
      */
     public function getSystemLogger($name = LoggerKeys::SYSTEM)
@@ -869,9 +870,28 @@ class Simple implements ApplicationInterface
         $this->getOutput()->writeln($logLevel ? $helper->formatBlock($msg, $style) : $msg);
 
         // log the message if a log level has been passed
-        if ($logLevel && $systemLogger = $this->getSystemLogger()) {
+        $systemLogger = $this->getSystemLogger();
+
+        if ($this->shouldBeLogged($systemLogger, $logLevel)) {
             $systemLogger->log($logLevel, $msg);
         }
+    }
+
+    /**
+     * Check if the message should be logged.
+     *
+     * @param \Psr\Log\LoggerInterface $logger      The logger instance
+     * @param string                   $logLevel    The log level to use
+     *
+     * @return bool
+     */
+    protected function shouldBeLogged(LoggerInterface $logger, $logLevel)
+    {
+        $loggerAvailable = $logLevel && $logger;
+        $debugMode = $this->getConfiguration()->isDebugMode();
+        $isCritical = $logLevel === LogLevel::CRITICAL;
+
+        return $loggerAvailable && (!$debugMode || $isCritical);
     }
 
     /**
