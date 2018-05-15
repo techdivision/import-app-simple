@@ -1,3 +1,13 @@
+# Version 1.0.1
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Removed deprecated rhumsaa library and added Magento 2.2 compatible version to composer.json
+
 # Version 1.0.0
 
 ## Bugfixes
