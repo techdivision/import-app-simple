@@ -21,7 +21,7 @@
 namespace TechDivision\Import\App;
 
 use Psr\Log\LogLevel;
-use Rhumsaa\Uuid\Uuid;
+use Ramsey\Uuid\Uuid;
 use League\Event\EmitterInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
