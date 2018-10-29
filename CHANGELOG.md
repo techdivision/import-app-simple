@@ -1,3 +1,13 @@
+# Version 2.0.0
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Switch to latest techdivision/import ~3.0 version as dependency
+
 # Version 1.0.2
 
 ## Bugfixes
