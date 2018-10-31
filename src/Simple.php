@@ -525,7 +525,6 @@ class Simple implements ApplicationInterface
                     unlink($filename);
                 }
             }
-
         } catch (FileNotFoundException $fnfe) {
             $this->getSystemLogger()->notice(sprintf('PID file %s doesn\'t exist', $this->getPidFilename()));
         } catch (LineNotFoundException $lnfe) {
@@ -647,7 +646,6 @@ class Simple implements ApplicationInterface
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
-
         } catch (ImportAlreadyRunningException $iare) {
             // tear down
             $this->tearDown();
@@ -682,7 +680,6 @@ class Simple implements ApplicationInterface
 
             // re-throw the exception
             throw $iare;
-
         } catch (\Exception $e) {
             // tear down
             $this->tearDown();
