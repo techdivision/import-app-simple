@@ -1,3 +1,23 @@
+# Version 4.0.0
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Switch to latest techdivision/import ~4.0 version as dependency
+
+# Version 3.0.0
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Switch to latest techdivision/import ~3.0 version as dependency
+
 # Version 2.0.0
 
 ## Bugfixes
