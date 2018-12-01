@@ -1,3 +1,13 @@
+# Version 4.0.1
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Add support for older symfony/console versions ~2.3,!=2.7.0
+
 # Version 4.0.0
 
 ## Bugfixes
