@@ -1,3 +1,13 @@
+# Version 6.0.1
+
+## Bugfixes
+
+* Replace fixed dependency techdivision/import 6.0.0 with 6.0.x
+
+## Features
+
+* None
+
 # Version 6.0.0
 
 ## Bugfixes
