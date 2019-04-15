@@ -1,3 +1,14 @@
+# Version 7.0.0
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Refactoring tasks to make implementation more generic
+* Switch to latest techdivision/import 7.0.* version as dependency
+
 # Version 6.0.1
 
 ## Bugfixes

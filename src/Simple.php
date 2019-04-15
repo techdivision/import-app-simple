@@ -21,7 +21,6 @@
 namespace TechDivision\Import\App;
 
 use Psr\Log\LogLevel;
-use Ramsey\Uuid\Uuid;
 use League\Event\EmitterInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -29,8 +28,6 @@ use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\DependencyInjection\TaggedContainerInterface;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
-use TechDivision\Import\Utils\RegistryKeys;
-use TechDivision\Import\App\Utils\DependencyInjectionKeys;
 use TechDivision\Import\ApplicationInterface;
 use TechDivision\Import\ConfigurationInterface;
 use TechDivision\Import\Plugins\PluginFactoryInterface;
@@ -589,15 +586,20 @@ class Simple implements ApplicationInterface
     /**
      * Process the given operation.
      *
+     * @param string $serial The unique serial of the actual import process
+     *
      * @return void
      * @throws \Exception Is thrown if the operation can't be finished successfully
      */
-    public function process()
+    public function process($serial)
     {
 
         try {
             // track the start time
             $startTime = microtime(true);
+
+            // set the serial for this import process
+            $this->serial = $serial;
 
             // invoke the event that has to be fired before the application start's the transaction
             // (if single transaction mode has been activated)
@@ -785,52 +787,7 @@ class Simple implements ApplicationInterface
      */
     protected function setUp()
     {
-
-        // generate the serial for the new job
-        $this->serial = Uuid::uuid4()->__toString();
-
-        // write the TechDivision ANSI art icon to the console
-        $this->log($this->ansiArt);
-
-        // log the debug information, if debug mode is enabled
-        if ($this->getConfiguration()->isDebugMode()) {
-            // load the application from the DI container
-            /** @var TechDivision\Import\App\Application $application */
-            $application = $this->getContainer()->get(DependencyInjectionKeys::APPLICATION);
-            // log the system's PHP configuration
-            $this->log(sprintf('PHP version: %s', phpversion()), LogLevel::DEBUG);
-            $this->log(sprintf('App version: %s', $application->getVersion()), LogLevel::DEBUG);
-            $this->log('-------------------- Loaded Extensions -----------------------', LogLevel::DEBUG);
-            $this->log(implode(', ', $loadedExtensions = get_loaded_extensions()), LogLevel::DEBUG);
-            $this->log('--------------------------------------------------------------', LogLevel::DEBUG);
-
-            // write a warning for low performance, if XDebug extension is activated
-            if (in_array('xdebug', $loadedExtensions)) {
-                $this->log('Low performance exptected, as result of enabled XDebug extension!', LogLevel::WARNING);
-            }
-        }
-
-        // log a message that import has been started
-        $this->log(
-            sprintf(
-                'Now start import with serial %s [%s => %s]',
-                $this->getSerial(),
-                $this->getConfiguration()->getEntityTypeCode(),
-                $this->getConfiguration()->getOperationName()
-            ),
-            LogLevel::INFO
-        );
-
-        // initialize the status
-        $status = array(
-            RegistryKeys::STATUS => 1,
-            RegistryKeys::BUNCHES => 0,
-            RegistryKeys::SOURCE_DIRECTORY => $this->getConfiguration()->getSourceDir(),
-            RegistryKeys::MISSING_OPTION_VALUES => array()
-        );
-
-        // append it to the registry
-        $this->getRegistryProcessor()->setAttribute($this->getSerial(), $status);
+        $this->getEmitter()->emit(EventNames::APP_SET_UP, $this);
     }
 
     /**
@@ -841,7 +798,7 @@ class Simple implements ApplicationInterface
      */
     protected function tearDown()
     {
-        $this->getRegistryProcessor()->removeAttribute($this->getSerial());
+        $this->getEmitter()->emit(EventNames::APP_TEAR_DOWN, $this);
     }
 
     /**
@@ -853,7 +810,7 @@ class Simple implements ApplicationInterface
      *
      * @return void
      */
-    protected function log($msg, $logLevel = null)
+    public function log($msg, $logLevel = null)
     {
 
         // initialize the formatter helper
