@@ -29,6 +29,7 @@ use Symfony\Component\DependencyInjection\TaggedContainerInterface;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
+use TechDivision\Import\App\Utils\DependencyInjectionKeys;
 use TechDivision\Import\ConfigurationInterface;
 use TechDivision\Import\Plugins\PluginFactoryInterface;
 use TechDivision\Import\Exceptions\LineNotFoundException;
@@ -405,6 +406,16 @@ class Simple implements ApplicationInterface
                 $name
             )
         );
+    }
+
+    /**
+     * Returns the actual application version.
+     *
+     * @return string The application's version
+     */
+    public function getVersion()
+    {
+        return $this->getContainer()->get(DependencyInjectionKeys::APPLICATION)->getVersion();
     }
 
     /**

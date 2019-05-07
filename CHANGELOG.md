@@ -1,3 +1,13 @@
+# Version 9.0.0
+
+## Bugfixes
+
+* Fixed #24
+
+## Features
+
+* None
+
 # Version 8.0.0
 
 ## Bugfixes
