@@ -1,3 +1,13 @@
+# Version 10.0.0
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Add additional events on plugin and subject level
+
 # Version 9.0.0
 
 ## Bugfixes

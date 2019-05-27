@@ -624,15 +624,39 @@ class Simple implements ApplicationInterface
             // prepare the global data for the import process
             $this->setUp();
 
+            // initialize the array with the plugins
+            $plugins = array();
+
             // process the plugins defined in the configuration
             /** @var \TechDivision\Import\Configuration\PluginConfigurationInterface $pluginConfiguration */
-            foreach ($this->getConfiguration()->getPlugins() as $pluginConfiguration) {
+            foreach ($this->getConfiguration()->getPlugins() as $key => $pluginConfiguration) {
                 // query whether or not the operation has been stopped
                 if ($this->isStopped()) {
                     break;
                 }
-                // process the plugin if not
-                $this->pluginFactory->createPlugin($pluginConfiguration)->process();
+
+                // create and process the plugin if not
+                $plugins[$key] = $this->pluginFactory->createPlugin($pluginConfiguration);
+
+                try {
+                    // invoke the event that has to be fired before the plugin will be executed
+                    $this->getEmitter()->emit(EventNames::PLUGIN_PROCESS_START, $plugins[$key]);
+                    $this->getEmitter()->emit(sprintf('%s.%s', $pluginConfiguration->getName(), EventNames::PLUGIN_PROCESS_START), $plugins[$key]);
+
+                    // process the plugin
+                    $plugins[$key]->process();
+
+                    // invoke the event that has to be fired after the plugin has been executed
+                    $this->getEmitter()->emit(EventNames::PLUGIN_PROCESS_SUCCESS, $plugins[$key]);
+                    $this->getEmitter()->emit(sprintf('%s.%s', $pluginConfiguration->getName(), EventNames::PLUGIN_PROCESS_SUCCESS), $plugins[$key]);
+                } catch (\Exception $e) {
+                    // invoke the event that has to be fired when the plugin throws an exception
+                    $this->getEmitter()->emit(EventNames::PLUGIN_PROCESS_FAILURE, $plugins[$key]);
+                    $this->getEmitter()->emit(sprintf('%s.%s', $pluginConfiguration->getName(), EventNames::PLUGIN_PROCESS_FAILURE), $plugins[$key]);
+
+                    // re-throw the exception
+                    throw $e;
+                }
             }
 
             // tear down the  instance
