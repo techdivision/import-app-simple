@@ -7,6 +7,7 @@
 ## Features
 
 * Add additional events on plugin and subject level
+* Switch to latest techdivision/import 9.0.* version as dependency
 
 # Version 9.0.0
 
