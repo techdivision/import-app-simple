@@ -1,3 +1,13 @@
+# Version 13.0.1
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Lower minimal PHP version to 5.6
+
 # Version 13.0.0
 
 ## Bugfixes
