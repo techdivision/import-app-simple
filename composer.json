@@ -7,7 +7,7 @@
         "ramsey/uuid": "~3.0",
         "monolog/monolog": "~1.0",
         "symfony/console": "~2.3,!=2.7.0|~4.0",
-        "techdivision/import": "15.x-dev"
+        "techdivision/import": "15.x-dev as 15.0.0"
     },
     "require-dev": {
         "doctrine/dbal": "2.5.*",
