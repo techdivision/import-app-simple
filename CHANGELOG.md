@@ -6,6 +6,7 @@
 
 ## Features
 
+* Add techdivision/import#146
 * Switch to latest techdivision/import 15.* version as dependency
 
 # Version 15.0.0

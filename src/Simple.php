@@ -31,7 +31,6 @@ use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
 use TechDivision\Import\App\Utils\DependencyInjectionKeys;
 use TechDivision\Import\ConfigurationInterface;
-use TechDivision\Import\Plugins\PluginFactoryInterface;
 use TechDivision\Import\Exceptions\LineNotFoundException;
 use TechDivision\Import\Exceptions\FileNotFoundException;
 use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
@@ -167,11 +166,11 @@ class Simple implements ApplicationInterface
     protected $fh;
 
     /**
-     * The plugin factory instance.
+     * The array with the module instances.
      *
-     * @var \TechDivision\Import\Plugins\PluginFactoryInterface
+     * @var \TechDivision\Import\Modules\ModuleInterface[]
      */
-    protected $pluginFactory;
+    protected $modules;
 
     /**
      * The event emitter instance.
@@ -187,20 +186,20 @@ class Simple implements ApplicationInterface
      * @param \TechDivision\Import\Services\RegistryProcessorInterface        $registryProcessor The registry processor instance
      * @param \TechDivision\Import\Services\ImportProcessorInterface          $importProcessor   The import processor instance
      * @param \TechDivision\Import\ConfigurationInterface                     $configuration     The system configuration
-     * @param \TechDivision\Import\Plugins\PluginFactoryInterface             $pluginFactory     The plugin factory instance
      * @param \Symfony\Component\Console\Output\OutputInterface               $output            The output instance
      * @param \Doctrine\Common\Collections\Collection                         $systemLoggers     The array with the system logger instances
      * @param \League\Event\EmitterInterface                                  $emitter           The event emitter instance
+     * @param \Traversable                                                    $modules           The modules that provides the business logic
      */
     public function __construct(
         TaggedContainerInterface $container,
         RegistryProcessorInterface $registryProcessor,
         ImportProcessorInterface $importProcessor,
         ConfigurationInterface $configuration,
-        PluginFactoryInterface $pluginFactory,
         OutputInterface $output,
         Collection $systemLoggers,
-        EmitterInterface $emitter
+        EmitterInterface $emitter,
+        \Traversable $modules
     ) {
 
         // register the shutdown function
@@ -209,10 +208,10 @@ class Simple implements ApplicationInterface
         // initialize the instance with the passed values
         $this->setOutput($output);
         $this->setEmitter($emitter);
+        $this->setModules($modules);
         $this->setContainer($container);
         $this->setConfiguration($configuration);
         $this->setSystemLoggers($systemLoggers);
-        $this->setPluginFactory($pluginFactory);
         $this->setImportProcessor($importProcessor);
         $this->setRegistryProcessor($registryProcessor);
     }
@@ -362,25 +361,25 @@ class Simple implements ApplicationInterface
     }
 
     /**
-     * Set's the plugin factory instance.
+     * Set's the module instances.
      *
-     * @param \TechDivision\Import\Plugins\PluginFactoryInterface $pluginFactory The plugin factory instance
+     * @param \Traversable $modules The modules instances
      *
      * @return void
      */
-    public function setPluginFactory(PluginFactoryInterface $pluginFactory)
+    public function setModules(\Traversable $modules)
     {
-        $this->pluginFactory = $pluginFactory;
+        $this->modules = $modules;
     }
 
     /**
-     * Return's the plugin factory instance.
+     * Return's the module instances.
      *
-     * @return \TechDivision\Import\Plugins\PluginFactoryInterface The plugin factory instance
+     * @return \Traversable The module instances
      */
-    public function getPluginFactory()
+    public function getModules()
     {
-        return $this->pluginFactory;
+        return $this->modules;
     }
 
     /**
@@ -624,39 +623,9 @@ class Simple implements ApplicationInterface
             // prepare the global data for the import process
             $this->setUp();
 
-            // initialize the array with the plugins
-            $plugins = array();
-
-            // process the plugins defined in the configuration
-            /** @var \TechDivision\Import\Configuration\PluginConfigurationInterface $pluginConfiguration */
-            foreach ($this->getConfiguration()->getPlugins() as $key => $pluginConfiguration) {
-                // query whether or not the operation has been stopped
-                if ($this->isStopped()) {
-                    break;
-                }
-
-                // create and process the plugin if not
-                $plugins[$key] = $this->pluginFactory->createPlugin($pluginConfiguration);
-
-                try {
-                    // invoke the event that has to be fired before the plugin will be executed
-                    $this->getEmitter()->emit(EventNames::PLUGIN_PROCESS_START, $plugins[$key]);
-                    $this->getEmitter()->emit(sprintf('%s.%s', $pluginConfiguration->getName(), EventNames::PLUGIN_PROCESS_START), $plugins[$key]);
-
-                    // process the plugin
-                    $plugins[$key]->process();
-
-                    // invoke the event that has to be fired after the plugin has been executed
-                    $this->getEmitter()->emit(EventNames::PLUGIN_PROCESS_SUCCESS, $plugins[$key]);
-                    $this->getEmitter()->emit(sprintf('%s.%s', $pluginConfiguration->getName(), EventNames::PLUGIN_PROCESS_SUCCESS), $plugins[$key]);
-                } catch (\Exception $e) {
-                    // invoke the event that has to be fired when the plugin throws an exception
-                    $this->getEmitter()->emit(EventNames::PLUGIN_PROCESS_FAILURE, $plugins[$key]);
-                    $this->getEmitter()->emit(sprintf('%s.%s', $pluginConfiguration->getName(), EventNames::PLUGIN_PROCESS_FAILURE), $plugins[$key]);
-
-                    // re-throw the exception
-                    throw $e;
-                }
+            // process the modules
+            foreach ($this->getModules() as $module) {
+                $module->process();
             }
 
             // tear down the  instance

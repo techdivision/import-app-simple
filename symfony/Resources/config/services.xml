@@ -10,10 +10,10 @@
             <argument type="service" id="import.processor.registry"/>
             <argument type="service" id="import.processor.import"/>
             <argument type="service" id="configuration"/>
-            <argument type="service" id="import.plugin.factory"/>
             <argument type="service" id="output"/>
             <argument type="service" id="loggers"/>
             <argument type="service" id="import.events.emitter"/>
+            <argument type="service" id="import.modules"/>
         </service>
 
     </services>
