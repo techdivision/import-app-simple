@@ -60,19 +60,6 @@ class Simple implements ApplicationInterface
     const DEFAULT_STYLE = 'info';
 
     /**
-     * The TechDivision company name as ANSI art.
-     *
-     * @var string
-     */
-    protected $ansiArt = ' _______        _     _____  _       _     _
-|__   __|      | |   |  __ \(_)     (_)   (_)
-   | | ___  ___| |__ | |  | |___   ___ ___ _  ___  _ __
-   | |/ _ \/ __| \'_ \| |  | | \ \ / / / __| |/ _ \| \'_ \
-   | |  __/ (__| | | | |__| | |\ V /| \__ \ | (_) | | | |
-   |_|\___|\___|_| |_|_____/|_| \_/ |_|___/_|\___/|_| |_|
-';
-
-    /**
      * The log level => console style mapping.
      *
      * @var array
@@ -415,6 +402,16 @@ class Simple implements ApplicationInterface
     public function getVersion()
     {
         return $this->getContainer()->get(DependencyInjectionKeys::APPLICATION)->getVersion();
+    }
+
+    /**
+     * Returns the actual application name.
+     *
+     * @return string The application's name
+     */
+    public function getName()
+    {
+        return $this->getContainer()->get(DependencyInjectionKeys::APPLICATION)->getName();
     }
 
     /**
