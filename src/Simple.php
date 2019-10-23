@@ -36,6 +36,7 @@ use TechDivision\Import\Exceptions\FileNotFoundException;
 use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
 use TechDivision\Import\Services\ImportProcessorInterface;
 use TechDivision\Import\Services\RegistryProcessorInterface;
+use TechDivision\Import\Exceptions\ApplicationStoppedException;
 
 /**
  * The M2IF - Simple Application implementation.
@@ -595,7 +596,7 @@ class Simple implements ApplicationInterface
      *
      * @param string $serial The unique serial of the actual import process
      *
-     * @return void
+     * @return null|int null or 0 if everything went fine, or an error code
      * @throws \Exception Is thrown if the operation can't be finished successfully
      */
     public function process($serial)
@@ -649,6 +650,45 @@ class Simple implements ApplicationInterface
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
+        } catch (ApplicationStoppedException $ase) {
+            // tear down
+            $this->tearDown();
+
+            // rollback the transaction, if single transaction mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->rollBack();
+            }
+
+            // invoke the event that has to be fired after the application rollbacked the
+            // transaction (if single transaction mode has been activated)
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $ase);
+
+            // finally, if a PID has been set (because CSV files has been found),
+            // remove it from the PID file to unlock the importer
+            $this->unlock();
+
+            // track the time needed for the import in seconds
+            $endTime = microtime(true) - $startTime;
+
+            // log a message that the file import failed
+            foreach ($this->systemLoggers as $systemLogger) {
+                $systemLogger->error($ase->__toString());
+            }
+
+            // log a message that import has been finished
+            $this->getSystemLogger()->info(
+                sprintf(
+                    'Can\'t finish import with serial %s in %f s',
+                    $this->getSerial(),
+                    $endTime
+                )
+            );
+
+            // log the exception message as warning
+            $this->log($ase->getMessage(), LogLevel::WARNING);
+
+            // return 1 to signal an error
+            return 1;
         } catch (ImportAlreadyRunningException $iare) {
             // tear down
             $this->tearDown();
@@ -681,8 +721,11 @@ class Simple implements ApplicationInterface
                 )
             );
 
-            // re-throw the exception
-            throw $iare;
+            // log the exception message as warning
+            $this->log($iare->getMessage(), LogLevel::WARNING);
+
+            // return 1 to signal an error
+            return 1;
         } catch (\Exception $e) {
             // tear down
             $this->tearDown();
@@ -717,8 +760,11 @@ class Simple implements ApplicationInterface
                 )
             );
 
-            // re-throw the exception
-            throw $e;
+            // log the exception message as warning
+            $this->log($e->getMessage(), LogLevel::ERROR);
+
+            // return 1 to signal an error
+            return 1;
         }
     }
 
@@ -728,15 +774,16 @@ class Simple implements ApplicationInterface
      * @param string $reason The reason why the operation has been stopped
      *
      * @return void
+     * @throws \TechDivision\Import\Exceptions\ApplicationStoppedException Is thrown if the application has been stopped
      */
     public function stop($reason)
     {
 
-        // log a message that the operation has been stopped
-        $this->log($reason, LogLevel::INFO);
-
         // stop processing the plugins by setting the flag to TRUE
         $this->stopped = true;
+
+        // throw the exeception
+        throw new ApplicationStoppedException($reason);
     }
 
     /**
