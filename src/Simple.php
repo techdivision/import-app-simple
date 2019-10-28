@@ -637,15 +637,8 @@ class Simple implements ApplicationInterface
             // track the time needed for the import in seconds
             $endTime = microtime(true) - $startTime;
 
-            // log a message that import has been finished
-            $this->log(
-                sprintf(
-                    'Successfully finished import with serial %s in %f s',
-                    $this->getSerial(),
-                    $endTime
-                ),
-                LogLevel::INFO
-            );
+            // log a debug message that import has been finished
+            $this->getSystemLogger()->info(sprintf('Execution time for operation with serial %s in %f s', $this->getSerial(), $endTime));
 
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
@@ -676,13 +669,7 @@ class Simple implements ApplicationInterface
             }
 
             // log a message that import has been finished
-            $this->getSystemLogger()->info(
-                sprintf(
-                    'Can\'t finish import with serial %s in %f s',
-                    $this->getSerial(),
-                    $endTime
-                )
-            );
+            $this->getSystemLogger()->warning(sprintf('Can\'t finish import with serial %s in %f s', $this->getSerial(), $endTime));
 
             // log the exception message as warning
             $this->log($ase->getMessage(), LogLevel::WARNING);
@@ -713,13 +700,7 @@ class Simple implements ApplicationInterface
             $this->getSystemLogger()->warning($iare->__toString());
 
             // log a message that import has been finished
-            $this->getSystemLogger()->info(
-                sprintf(
-                    'Can\'t finish import with serial because another import process is running %s in %f s',
-                    $this->getSerial(),
-                    $endTime
-                )
-            );
+            $this->getSystemLogger()->warning(sprintf('Can\'t finish import with serial because another import process is running %s in %f s', $this->getSerial(), $endTime));
 
             // log the exception message as warning
             $this->log($iare->getMessage(), LogLevel::WARNING);
@@ -752,13 +733,7 @@ class Simple implements ApplicationInterface
             }
 
             // log a message that import has been finished
-            $this->getSystemLogger()->info(
-                sprintf(
-                    'Can\'t finish import with serial %s in %f s',
-                    $this->getSerial(),
-                    $endTime
-                )
-            );
+            $this->getSystemLogger()->error(sprintf('Can\'t finish import with serial %s in %f s', $this->getSerial(), $endTime));
 
             // log the exception message as warning
             $this->log($e->getMessage(), LogLevel::ERROR);
