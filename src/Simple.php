@@ -626,9 +626,6 @@ class Simple implements ApplicationInterface
                 $module->process();
             }
 
-            // tear down the  instance
-            $this->tearDown();
-
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->commit();
@@ -644,9 +641,6 @@ class Simple implements ApplicationInterface
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
         } catch (ApplicationStoppedException $ase) {
-            // tear down
-            $this->tearDown();
-
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->rollBack();
@@ -677,9 +671,6 @@ class Simple implements ApplicationInterface
             // return 1 to signal an error
             return 1;
         } catch (ImportAlreadyRunningException $iare) {
-            // tear down
-            $this->tearDown();
-
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->rollBack();
@@ -708,9 +699,6 @@ class Simple implements ApplicationInterface
             // return 1 to signal an error
             return 1;
         } catch (\Exception $e) {
-            // tear down
-            $this->tearDown();
-
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->rollBack();
@@ -740,6 +728,9 @@ class Simple implements ApplicationInterface
 
             // return 1 to signal an error
             return 1;
+        } finally {
+            // tear down
+            $this->tearDown();
         }
     }
 
