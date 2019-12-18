@@ -73,11 +73,6 @@ class SimpleTest extends \PHPUnit_Framework_TestCase
                                   ->setMethods(get_class_methods('TechDivision\Import\ConfigurationInterface'))
                                   ->getMock();
 
-        // create a mock plugin factory
-        $mockPluginFactory = $this->getMockBuilder('TechDivision\Import\Plugins\PluginFactoryInterface')
-                                  ->setMethods(get_class_methods('TechDivision\Import\Plugins\PluginFactoryInterface'))
-                                  ->getMock();
-
         // create a mock output
         $mockOutput = $this->getMockBuilder('Symfony\Component\Console\Output\OutputInterface')
                                   ->setMethods(get_class_methods('Symfony\Component\Console\Output\OutputInterface'))
@@ -94,10 +89,10 @@ class SimpleTest extends \PHPUnit_Framework_TestCase
             $mockRegistryProcessor,
             $mockImportProcessor,
             $mockConfiguration,
-            $mockPluginFactory,
             $mockOutput,
             new ArrayCollection(),
-            $mockEmitter
+            $mockEmitter,
+            new ArrayCollection()
         );
     }
 
