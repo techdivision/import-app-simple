@@ -731,6 +731,9 @@ class Simple implements ApplicationInterface
         } finally {
             // tear down
             $this->tearDown();
+
+            // invoke the event that has to be fired after the application transaction has been finished
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FINISHED, $this);
         }
     }
 
