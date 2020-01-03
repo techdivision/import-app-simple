@@ -20,6 +20,7 @@
 
 namespace TechDivision\Import\App;
 
+use PHPUnit\Framework\TestCase;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
@@ -31,7 +32,7 @@ use Doctrine\Common\Collections\ArrayCollection;
  * @link      https://github.com/techdivision/import-app-simple
  * @link      http://www.techdivision.com
  */
-class SimpleTest extends \PHPUnit_Framework_TestCase
+class SimpleTest extends TestCase
 {
 
     /**
@@ -48,7 +49,7 @@ class SimpleTest extends \PHPUnit_Framework_TestCase
      * This method is called before a test is executed.
      *
      * @return void
-     * @see \PHPUnit_Framework_TestCase::setUp()
+     * @see \PHPUnit\Framework\TestCase::setUp()
      */
     protected function setUp()
     {
