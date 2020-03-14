@@ -29,7 +29,13 @@
         "psr-4": {
             "TechDivision\\Import\\App\\": [
                 "src/",
-                "symfony/",
+                "symfony/"
+            ]
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TechDivision\\Import\\App\\": [
                 "tests/unit/"
             ]
         }
