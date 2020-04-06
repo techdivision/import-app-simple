@@ -31,12 +31,12 @@ use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
 use TechDivision\Import\App\Utils\DependencyInjectionKeys;
 use TechDivision\Import\ConfigurationInterface;
-use TechDivision\Import\Exceptions\LineNotFoundException;
-use TechDivision\Import\Exceptions\FileNotFoundException;
 use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
 use TechDivision\Import\Services\ImportProcessorInterface;
 use TechDivision\Import\Services\RegistryProcessorInterface;
 use TechDivision\Import\Exceptions\ApplicationStoppedException;
+use TechDivision\Import\Handlers\PidFileHandlerInterface;
+use TechDivision\Import\Handlers\GenericFileHandlerInterface;
 
 /**
  * The M2IF - Simple Application implementation.
@@ -168,16 +168,32 @@ class Simple implements ApplicationInterface
     protected $emitter;
 
     /**
+     * The generic file handler instance.
+     *
+     * @var \TechDivision\Import\Handlers\GenericFileHandlerInterface
+     */
+    protected $genericFileHanlder;
+
+    /**
+     * The PID file handler instance.
+     *
+     * @var \TechDivision\Import\Handlers\PidFileHandlerInterface
+     */
+    protected $pidFileHanlder;
+
+    /**
      * The constructor to initialize the instance.
      *
-     * @param \Symfony\Component\DependencyInjection\TaggedContainerInterface $container         The DI container instance
-     * @param \TechDivision\Import\Services\RegistryProcessorInterface        $registryProcessor The registry processor instance
-     * @param \TechDivision\Import\Services\ImportProcessorInterface          $importProcessor   The import processor instance
-     * @param \TechDivision\Import\ConfigurationInterface                     $configuration     The system configuration
-     * @param \Symfony\Component\Console\Output\OutputInterface               $output            The output instance
-     * @param \Doctrine\Common\Collections\Collection                         $systemLoggers     The array with the system logger instances
-     * @param \League\Event\EmitterInterface                                  $emitter           The event emitter instance
-     * @param \Traversable                                                    $modules           The modules that provides the business logic
+     * @param \Symfony\Component\DependencyInjection\TaggedContainerInterface $container          The DI container instance
+     * @param \TechDivision\Import\Services\RegistryProcessorInterface        $registryProcessor  The registry processor instance
+     * @param \TechDivision\Import\Services\ImportProcessorInterface          $importProcessor    The import processor instance
+     * @param \TechDivision\Import\ConfigurationInterface                     $configuration      The system configuration
+     * @param \Symfony\Component\Console\Output\OutputInterface               $output             The output instance
+     * @param \Doctrine\Common\Collections\Collection                         $systemLoggers      The array with the system logger instances
+     * @param \League\Event\EmitterInterface                                  $emitter            The event emitter instance
+     * @param \TechDivision\Import\Handlers\GenericFileHandlerInterface       $genericFileHandler The generic file handler instance
+     * @param \TechDivision\Import\Handlers\PidFileHandlerInterface           $pidFileHandler     The PID file handler instance
+     * @param \Traversable                                                    $modules            The modules that provides the business logic
      */
     public function __construct(
         TaggedContainerInterface $container,
@@ -187,6 +203,8 @@ class Simple implements ApplicationInterface
         OutputInterface $output,
         Collection $systemLoggers,
         EmitterInterface $emitter,
+        GenericFileHandlerInterface $genericFileHandler,
+        PidFileHandlerInterface $pidFileHandler,
         \Traversable $modules
     ) {
 
@@ -200,8 +218,10 @@ class Simple implements ApplicationInterface
         $this->setContainer($container);
         $this->setConfiguration($configuration);
         $this->setSystemLoggers($systemLoggers);
+        $this->setPidFileHandler($pidFileHandler);
         $this->setImportProcessor($importProcessor);
         $this->setRegistryProcessor($registryProcessor);
+        $this->setGenericFileHandler($genericFileHandler);
     }
 
     /**
@@ -371,6 +391,50 @@ class Simple implements ApplicationInterface
     }
 
     /**
+     * Set's the PID file handler instance.
+     *
+     * @param \TechDivision\Import\Handlers\PidFileHandlerInterface $pidFileHandler The PID file handler instance
+     *
+     * @return void
+     */
+    public function setPidFileHandler(PidFileHandlerInterface $pidFileHandler) : void
+    {
+        $this->pidFileHanlder = $pidFileHandler;
+    }
+
+    /**
+     * Return's the PID file handler instance.
+     *
+     * @return \TechDivision\Import\Handlers\PidFileHandlerInterface The PID file handler instance
+     */
+    public function getPidFileHandler() : PidFileHandlerInterface
+    {
+        return $this->pidFileHanlder;
+    }
+
+    /**
+     * Set's the generic file handler instance.
+     *
+     * @param \TechDivision\Import\Handlers\GenericFileHandlerInterface $genericFileHandler The generic file handler instance
+     *
+     * @return void
+     */
+    public function setGenericFileHandler(GenericFileHandlerInterface $genericFileHandler) : void
+    {
+        $this->genericFileHandler = $genericFileHandler;
+    }
+
+    /**
+     * Return's the generic file handler instance.
+     *
+     * @return \TechDivision\Import\Handlers\GenericFileHandlerInterface The generic file handler instance
+     */
+    public function getGenericFileHandler() : GenericFileHandlerInterface
+    {
+        return $this->genericFileHandler;
+    }
+
+    /**
      * Return's the logger with the passed name, by default the system logger.
      *
      * @param string $name The name of the requested system logger
@@ -484,27 +548,7 @@ class Simple implements ApplicationInterface
      */
     public function lock()
     {
-
-        // query whether or not, the PID has already been set
-        if ($this->pid === $this->getSerial()) {
-            return;
-        }
-
-        // if not, initialize the PID
-        $this->pid = $this->getSerial();
-
-        // open the PID file
-        $this->fh = fopen($filename = $this->getPidFilename(), 'a+');
-
-        // try to lock the PID file exclusive
-        if (!flock($this->fh, LOCK_EX|LOCK_NB)) {
-            throw new ImportAlreadyRunningException(sprintf('PID file %s is already in use', $filename));
-        }
-
-        // append the PID to the PID file
-        if (fwrite($this->fh, $this->pid . PHP_EOL) === false) {
-            throw new \Exception(sprintf('Can\'t write PID %s to PID file %s', $this->pid, $filename));
-        }
+        $this->getPidFileHandler()->lock();
     }
 
     /**
@@ -515,28 +559,7 @@ class Simple implements ApplicationInterface
      */
     public function unlock()
     {
-        try {
-            // remove the PID from the PID file if set
-            if ($this->pid === $this->getSerial() && is_resource($this->fh)) {
-                // remove the PID from the file
-                $this->removeLineFromFile($this->pid, $this->fh);
-
-                // finally unlock/close the PID file
-                flock($this->fh, LOCK_UN);
-                fclose($this->fh);
-
-                // if the PID file is empty, delete the file
-                if (filesize($filename = $this->getPidFilename()) === 0) {
-                    unlink($filename);
-                }
-            }
-        } catch (FileNotFoundException $fnfe) {
-            $this->getSystemLogger()->notice(sprintf('PID file %s doesn\'t exist', $this->getPidFilename()));
-        } catch (LineNotFoundException $lnfe) {
-            $this->getSystemLogger()->notice(sprintf('PID %s is can not be found in PID file %s', $this->pid, $this->getPidFilename()));
-        } catch (\Exception $e) {
-            throw new \Exception(sprintf('Can\'t remove PID %s from PID file %s', $this->pid, $this->getPidFilename()), null, $e);
-        }
+        $this->getPidFileHandler()->unlock();
     }
 
     /**
@@ -547,48 +570,20 @@ class Simple implements ApplicationInterface
      *
      * @return void
      * @throws \Exception Is thrown, if the file doesn't exists, the line is not found or can not be removed
+     * @deprecated Since version 17.0.0
+     * @see \TechDivision\Import\Handlers\GenericFileHandler::removeLineFromFile()
      */
     public function removeLineFromFile($line, $fh)
     {
 
-        // initialize the array for the PIDs found in the PID file
-        $lines = array();
+        // delegate the invocation to the generic file handler's method
+        $this->getGenericFileHandler()->removeLineFromFile($line, $fh);
 
-        // initialize the flag if the line has been found
-        $found = false;
-
-        // rewind the file pointer
-        rewind($fh);
-
-        // read the lines with the PIDs from the PID file
-        while (($buffer = fgets($fh, 4096)) !== false) {
-            // remove the new line
-            $buffer = trim($buffer);
-            // if the line is the one to be removed, ignore the line
-            if ($line === $buffer) {
-                $found = true;
-                continue;
-            }
-
-            // add the found PID to the array
-            $lines[] = $buffer;
-        }
-
-        // query whether or not, we found the line
-        if (!$found) {
-            throw new LineNotFoundException(sprintf('Line %s can not be found', $line));
-        }
-
-        // empty the file and rewind the file pointer
-        ftruncate($fh, 0);
-        rewind($fh);
-
-        // append the existing lines to the file
-        foreach ($lines as $ln) {
-            if (fwrite($fh, $ln . PHP_EOL) === false) {
-                throw new \Exception(sprintf('Can\'t write %s to file', $ln));
-            }
-        }
+        // log a message that this method has been deprecated now
+        $this->log(
+            sprintf('Method "%s" has been deprecated since version 17.0.0, use  \TechDivision\Import\Handlers\GenericFileHandler::removeLineFromFile() instead', __METHOD__),
+            LogLevel::WARNING
+        );
     }
 
     /**

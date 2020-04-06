@@ -13,6 +13,8 @@
             <argument type="service" id="output"/>
             <argument type="service" id="loggers"/>
             <argument type="service" id="import.events.emitter"/>
+            <argument type="service" id="import.handler.file.generic"/>
+            <argument type="service" id="import.handler.file.pid"/>
             <argument type="service" id="import.modules"/>
         </service>
 

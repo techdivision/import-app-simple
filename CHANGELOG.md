@@ -1,3 +1,14 @@
+# Version 17.0.0
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Refactor PID file handling
+* Switch to latest techdivision/import 15.* version as dependency
+
 # Version 16.0.1
 
 ## Bugfixes
