@@ -22,6 +22,14 @@ namespace TechDivision\Import\App;
 
 use PHPUnit\Framework\TestCase;
 use Doctrine\Common\Collections\ArrayCollection;
+use TechDivision\Import\Handlers\GenericFileHandlerInterface;
+use TechDivision\Import\Handlers\PidFileHandlerInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use TechDivision\Import\ConfigurationInterface;
+use TechDivision\Import\Services\ImportProcessorInterface;
+use TechDivision\Import\Services\RegistryProcessorInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use League\Event\EmitterInterface;
 
 /**
  * Test class for the simple, single-threaded, importer implementation.
@@ -55,34 +63,28 @@ class SimpleTest extends TestCase
     {
 
         // create a mock container
-        $mockContainer = $this->getMockBuilder('Symfony\Component\DependencyInjection\TaggedContainerInterface')
-                              ->setMethods(get_class_methods('Symfony\Component\DependencyInjection\TaggedContainerInterface'))
-                              ->getMock();
+        $mockContainer = $this->getMockBuilder(ContainerInterface::class)->getMock();
 
         // create a mock registry processor
-        $mockRegistryProcessor = $this->getMockBuilder('TechDivision\Import\Services\RegistryProcessorInterface')
-                                      ->setMethods(get_class_methods('TechDivision\Import\Services\RegistryProcessorInterface'))
-                                      ->getMock();
+        $mockRegistryProcessor = $this->getMockBuilder(RegistryProcessorInterface::class)->getMock();
 
         // create a mock import processor
-        $mockImportProcessor = $this->getMockBuilder('TechDivision\Import\Services\ImportProcessorInterface')
-                                    ->setMethods(get_class_methods('TechDivision\Import\Services\ImportProcessorInterface'))
-                                    ->getMock();
+        $mockImportProcessor = $this->getMockBuilder(ImportProcessorInterface::class)->getMock();
 
         // create a mock configuration
-        $mockConfiguration = $this->getMockBuilder('TechDivision\Import\ConfigurationInterface')
-                                  ->setMethods(get_class_methods('TechDivision\Import\ConfigurationInterface'))
-                                  ->getMock();
+        $mockConfiguration = $this->getMockBuilder(ConfigurationInterface::class)->getMock();
 
         // create a mock output
-        $mockOutput = $this->getMockBuilder('Symfony\Component\Console\Output\OutputInterface')
-                                  ->setMethods(get_class_methods('Symfony\Component\Console\Output\OutputInterface'))
-                                  ->getMock();
+        $mockOutput = $this->getMockBuilder(OutputInterface::class)->getMock();
 
         // mock the event emitter
-        $mockEmitter = $this->getMockBuilder('League\Event\EmitterInterface')
-                            ->setMethods(\get_class_methods('League\Event\EmitterInterface'))
-                            ->getMock();
+        $mockGenericFileHandler = $this->getMockBuilder(GenericFileHandlerInterface::class)->getMock();
+
+        // mock the event emitter
+        $mockPidFileHandler = $this->getMockBuilder(PidFileHandlerInterface::class)->getMock();
+
+        // mock the event emitter
+        $mockEmitter = $this->getMockBuilder(EmitterInterface::class)->getMock();
 
         // create the subject to be tested
         $this->instance = new Simple(
@@ -93,6 +95,8 @@ class SimpleTest extends TestCase
             $mockOutput,
             new ArrayCollection(),
             $mockEmitter,
+            $mockGenericFileHandler,
+            $mockPidFileHandler,
             new ArrayCollection()
         );
     }

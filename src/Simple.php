@@ -22,10 +22,10 @@ namespace TechDivision\Import\App;
 
 use Psr\Log\LogLevel;
 use League\Event\EmitterInterface;
+use Psr\Container\ContainerInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\FormatterHelper;
-use Symfony\Component\DependencyInjection\TaggedContainerInterface;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
@@ -114,7 +114,7 @@ class Simple implements ApplicationInterface
     /**
      * The DI container builder instance.
      *
-     * @var \Symfony\Component\DependencyInjection\TaggedContainerInterface
+     * @var \Psr\Container\ContainerInterface
      */
     protected $container;
 
@@ -184,19 +184,19 @@ class Simple implements ApplicationInterface
     /**
      * The constructor to initialize the instance.
      *
-     * @param \Symfony\Component\DependencyInjection\TaggedContainerInterface $container          The DI container instance
-     * @param \TechDivision\Import\Services\RegistryProcessorInterface        $registryProcessor  The registry processor instance
-     * @param \TechDivision\Import\Services\ImportProcessorInterface          $importProcessor    The import processor instance
-     * @param \TechDivision\Import\ConfigurationInterface                     $configuration      The system configuration
-     * @param \Symfony\Component\Console\Output\OutputInterface               $output             The output instance
-     * @param \Doctrine\Common\Collections\Collection                         $systemLoggers      The array with the system logger instances
-     * @param \League\Event\EmitterInterface                                  $emitter            The event emitter instance
-     * @param \TechDivision\Import\Handlers\GenericFileHandlerInterface       $genericFileHandler The generic file handler instance
-     * @param \TechDivision\Import\Handlers\PidFileHandlerInterface           $pidFileHandler     The PID file handler instance
-     * @param \Traversable                                                    $modules            The modules that provides the business logic
+     * @param \Psr\Container\ContainerInterface                         $container          The DI container instance
+     * @param \TechDivision\Import\Services\RegistryProcessorInterface  $registryProcessor  The registry processor instance
+     * @param \TechDivision\Import\Services\ImportProcessorInterface    $importProcessor    The import processor instance
+     * @param \TechDivision\Import\ConfigurationInterface               $configuration      The system configuration
+     * @param \Symfony\Component\Console\Output\OutputInterface         $output             The output instance
+     * @param \Doctrine\Common\Collections\Collection                   $systemLoggers      The array with the system logger instances
+     * @param \League\Event\EmitterInterface                            $emitter            The event emitter instance
+     * @param \TechDivision\Import\Handlers\GenericFileHandlerInterface $genericFileHandler The generic file handler instance
+     * @param \TechDivision\Import\Handlers\PidFileHandlerInterface     $pidFileHandler     The PID file handler instance
+     * @param \Traversable                                              $modules            The modules that provides the business logic
      */
     public function __construct(
-        TaggedContainerInterface $container,
+        ContainerInterface $container,
         RegistryProcessorInterface $registryProcessor,
         ImportProcessorInterface $importProcessor,
         ConfigurationInterface $configuration,
@@ -249,11 +249,11 @@ class Simple implements ApplicationInterface
     /**
      * Set's the container instance.
      *
-     * @param \Symfony\Component\DependencyInjection\TaggedContainerInterface $container The container instance
+     * @param \Psr\Container\ContainerInterface $container The container instance
      *
      * @return void
      */
-    public function setContainer(TaggedContainerInterface $container)
+    public function setContainer(ContainerInterface $container)
     {
         $this->container = $container;
     }
@@ -261,7 +261,7 @@ class Simple implements ApplicationInterface
     /**
      * Return's the container instance.
      *
-     * @return \Symfony\Component\DependencyInjection\TaggedContainerInterface The container instance
+     * @return \Psr\Container\ContainerInterface The container instance
      */
     public function getContainer()
     {

@@ -8,6 +8,7 @@
 
 * Refactor PID file handling
 * Switch to latest techdivision/import 15.* version as dependency
+* Replace Symfony\Component\DependencyInjection\TaggedContainerInterface with Psr\Container\ContainerInterface
 
 # Version 16.0.1
 
