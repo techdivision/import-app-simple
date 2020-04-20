@@ -30,7 +30,7 @@ use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
 use TechDivision\Import\App\Utils\DependencyInjectionKeys;
-use TechDivision\Import\ConfigurationInterface;
+use TechDivision\Import\Configuration\ConfigurationInterface;
 use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
 use TechDivision\Import\Services\ImportProcessorInterface;
 use TechDivision\Import\Services\RegistryProcessorInterface;
@@ -121,7 +121,7 @@ class Simple implements ApplicationInterface
     /**
      * The system configuration.
      *
-     * @var \TechDivision\Import\ConfigurationInterface
+     * @var \TechDivision\Import\Configuration\ConfigurationInterface
      */
     protected $configuration;
 
@@ -187,7 +187,7 @@ class Simple implements ApplicationInterface
      * @param \Psr\Container\ContainerInterface                         $container          The DI container instance
      * @param \TechDivision\Import\Services\RegistryProcessorInterface  $registryProcessor  The registry processor instance
      * @param \TechDivision\Import\Services\ImportProcessorInterface    $importProcessor    The import processor instance
-     * @param \TechDivision\Import\ConfigurationInterface               $configuration      The system configuration
+     * @param \TechDivision\Import\Configuration\ConfigurationInterface $configuration      The system configuration
      * @param \Symfony\Component\Console\Output\OutputInterface         $output             The output instance
      * @param \Doctrine\Common\Collections\Collection                   $systemLoggers      The array with the system logger instances
      * @param \League\Event\EmitterInterface                            $emitter            The event emitter instance
@@ -293,7 +293,7 @@ class Simple implements ApplicationInterface
     /**
      * Set's the system configuration.
      *
-     * @param \TechDivision\Import\ConfigurationInterface $configuration The system configuration
+     * @param \TechDivision\Import\Configuration\ConfigurationInterface $configuration The system configuration
      *
      * @return void
      */
@@ -305,7 +305,7 @@ class Simple implements ApplicationInterface
     /**
      * Return's the system configuration.
      *
-     * @return \TechDivision\Import\ConfigurationInterface The system configuration
+     * @return \TechDivision\Import\Configuration\ConfigurationInterface The system configuration
      */
     public function getConfiguration()
     {

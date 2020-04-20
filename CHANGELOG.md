@@ -6,6 +6,7 @@
 
 ## Features
 
+* Add #PAC-85
 * Refactor PID file handling
 * Switch to latest techdivision/import 15.* version as dependency
 * Replace Symfony\Component\DependencyInjection\TaggedContainerInterface with Psr\Container\ContainerInterface

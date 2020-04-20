@@ -25,7 +25,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use TechDivision\Import\Handlers\GenericFileHandlerInterface;
 use TechDivision\Import\Handlers\PidFileHandlerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use TechDivision\Import\ConfigurationInterface;
+use TechDivision\Import\Configuration\ConfigurationInterface;
 use TechDivision\Import\Services\ImportProcessorInterface;
 use TechDivision\Import\Services\RegistryProcessorInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
