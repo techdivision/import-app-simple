@@ -1,6 +1,6 @@
 {
     "name": "techdivision/import-app-simple",
-    "description": "M2IF simple application implementation providing basic Magento 2 import functionality",
+    "description": "Pacemaker simple application implementation providing basic Magento 2 import functionality",
     "license": "OSL-3.0",
     "require": {
         "php": ">=7.1.0",
