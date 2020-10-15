@@ -1,4 +1,4 @@
-# M2IF - Simple Application
+# Pacemaker - Simple Application
 
 [![Latest Stable Version](https://img.shields.io/packagist/v/techdivision/import-app-simple.svg?style=flat-square)](https://packagist.org/packages/techdivision/import-app-simple) 
  [![Total Downloads](https://img.shields.io/packagist/dt/techdivision/import-app-simple.svg?style=flat-square)](https://packagist.org/packages/techdivision/import-app-simple)
@@ -9,4 +9,4 @@
 
 This library provides a simple import application implementation to import data in an existing Magento 2 CE/EE instance.
 
-Please visit the M2IF [website](https://m2if.com) for documentation and additional information
+Please visit the Pacemaker [website](https://pacemaker.techdivision.com) or our [documentation](https://docs.met.tdintern.de/pacemaker/1.3/) for additional information
