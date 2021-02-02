@@ -26,6 +26,7 @@ use Psr\Container\ContainerInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\FormatterHelper;
+use TechDivision\Import\Exceptions\ApplicationFinishedException;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
@@ -652,6 +653,13 @@ class Simple implements ApplicationInterface
             // track the time needed for the import in seconds
             $endTime = microtime(true) - $startTime;
 
+            if ($ase instanceof ApplicationFinishedException) {
+                if ($ase->getMessage()) {
+                    $this->log($ase->getMessage(), LogLevel::NOTICE);
+                }
+                return 0;
+            }
+
             // log a message that the file import failed
             foreach ($this->systemLoggers as $systemLogger) {
                 $systemLogger->error($ase->__toString());
@@ -748,6 +756,12 @@ class Simple implements ApplicationInterface
 
         // throw the exeception
         throw new ApplicationStoppedException($reason);
+    }
+
+    public function finish($reason = '')
+    {
+        $this->stopped = true;
+        throw new ApplicationFinishedException($reason);
     }
 
     /**
