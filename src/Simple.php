@@ -637,14 +637,24 @@ class Simple implements ApplicationInterface
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
         } catch (ApplicationFinishedException $afe) {
+            // rollback the transaction, if single transaction mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->rollBack();
+            }
+
+            // invoke the event that has to be fired after the application rollbacked the
+            // transaction (if single transaction mode has been activated)
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $afe);
+
             // if a PID has been set (because CSV files has been found),
             // remove it from the PID file to unlock the importer
             $this->unlock();
 
-            if ($afe->getMessage()) {
-                $this->log($afe->getMessage(), LogLevel::NOTICE);
-            }
-            return 0;
+            // log the exception message as warning
+            $this->log($afe->getMessage(), LogLevel::NOTICE);
+
+            // return the exception code, 0 by default to signal NO error
+            return $afe->getCode();
         } catch (ApplicationStoppedException $ase) {
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -763,15 +773,20 @@ class Simple implements ApplicationInterface
     /**
      * Finish processing the operation. The application will be stopped without an error output.
      *
-     * @param string $reason The reason why the operation has been finish
+     * @param string $reason   The reason why the operation has been finish
+     * @param int    $exitCode The exit code to use
      *
      * @return void
      * @throws \TechDivision\Import\Exceptions\ApplicationFinishedException Is thrown if the application has been finish
      */
-    public function finish($reason = '')
+    public function finish($reason, $exitCode = 0)
     {
+
+        // stop processing the plugins by setting the flag to TRUE
         $this->stopped = true;
-        throw new ApplicationFinishedException($reason);
+
+        // throw the exeception
+        throw new ApplicationFinishedException($reason, $exitCode);
     }
 
     /**
