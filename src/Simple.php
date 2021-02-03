@@ -636,17 +636,24 @@ class Simple implements ApplicationInterface
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
-        } catch (ApplicationStoppedException $ase) {
-            if (!($ase instanceof ApplicationFinishedException)) {
-                // rollback the transaction, if single transaction mode has been configured
-                if ($this->getConfiguration()->isSingleTransaction()) {
-                    $this->getImportProcessor()->getConnection()->rollBack();
-                }
+        } catch (ApplicationFinishedException $afe) {
+            // if a PID has been set (because CSV files has been found),
+            // remove it from the PID file to unlock the importer
+            $this->unlock();
 
-                // invoke the event that has to be fired after the application rollbacked the
-                // transaction (if single transaction mode has been activated)
-                $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $ase);
+            if ($afe->getMessage()) {
+                $this->log($afe->getMessage(), LogLevel::NOTICE);
             }
+            return 0;
+        } catch (ApplicationStoppedException $ase) {
+            // rollback the transaction, if single transaction mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->rollBack();
+            }
+
+            // invoke the event that has to be fired after the application rollbacked the
+            // transaction (if single transaction mode has been activated)
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $ase);
 
             // finally, if a PID has been set (because CSV files has been found),
             // remove it from the PID file to unlock the importer
@@ -654,13 +661,6 @@ class Simple implements ApplicationInterface
 
             // track the time needed for the import in seconds
             $endTime = microtime(true) - $startTime;
-
-            if ($ase instanceof ApplicationFinishedException) {
-                if ($ase->getMessage()) {
-                    $this->log($ase->getMessage(), LogLevel::NOTICE);
-                }
-                return 0;
-            }
 
             // log a message that the file import failed
             foreach ($this->systemLoggers as $systemLogger) {
