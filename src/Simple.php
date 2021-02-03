@@ -637,14 +637,16 @@ class Simple implements ApplicationInterface
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
         } catch (ApplicationStoppedException $ase) {
-            // rollback the transaction, if single transaction mode has been configured
-            if ($this->getConfiguration()->isSingleTransaction()) {
-                $this->getImportProcessor()->getConnection()->rollBack();
-            }
+            if (!($ase instanceof ApplicationFinishedException)) {
+                // rollback the transaction, if single transaction mode has been configured
+                if ($this->getConfiguration()->isSingleTransaction()) {
+                    $this->getImportProcessor()->getConnection()->rollBack();
+                }
 
-            // invoke the event that has to be fired after the application rollbacked the
-            // transaction (if single transaction mode has been activated)
-            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $ase);
+                // invoke the event that has to be fired after the application rollbacked the
+                // transaction (if single transaction mode has been activated)
+                $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $ase);
+            }
 
             // finally, if a PID has been set (because CSV files has been found),
             // remove it from the PID file to unlock the importer
