@@ -26,7 +26,6 @@ use Psr\Container\ContainerInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\FormatterHelper;
-use TechDivision\Import\Exceptions\ApplicationFinishedException;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
@@ -36,6 +35,7 @@ use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
 use TechDivision\Import\Services\ImportProcessorInterface;
 use TechDivision\Import\Services\RegistryProcessorInterface;
 use TechDivision\Import\Exceptions\ApplicationStoppedException;
+use TechDivision\Import\Exceptions\ApplicationFinishedException;
 use TechDivision\Import\Handlers\PidFileHandlerInterface;
 use TechDivision\Import\Handlers\GenericFileHandlerInterface;
 
@@ -758,6 +758,14 @@ class Simple implements ApplicationInterface
         throw new ApplicationStoppedException($reason);
     }
 
+    /**
+     * Finish processing the operation. The application will be stopped without an error output.
+     *
+     * @param string $reason The reason why the operation has been finish
+     *
+     * @return void
+     * @throws \TechDivision\Import\Exceptions\ApplicationFinishedException Is thrown if the application has been finish
+     */
     public function finish($reason = '')
     {
         $this->stopped = true;
