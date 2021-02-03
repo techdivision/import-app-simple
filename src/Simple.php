@@ -35,6 +35,7 @@ use TechDivision\Import\Exceptions\ImportAlreadyRunningException;
 use TechDivision\Import\Services\ImportProcessorInterface;
 use TechDivision\Import\Services\RegistryProcessorInterface;
 use TechDivision\Import\Exceptions\ApplicationStoppedException;
+use TechDivision\Import\Exceptions\ApplicationFinishedException;
 use TechDivision\Import\Handlers\PidFileHandlerInterface;
 use TechDivision\Import\Handlers\GenericFileHandlerInterface;
 
@@ -635,6 +636,15 @@ class Simple implements ApplicationInterface
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
+        } catch (ApplicationFinishedException $afe) {
+            // if a PID has been set (because CSV files has been found),
+            // remove it from the PID file to unlock the importer
+            $this->unlock();
+
+            if ($afe->getMessage()) {
+                $this->log($afe->getMessage(), LogLevel::NOTICE);
+            }
+            return 0;
         } catch (ApplicationStoppedException $ase) {
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -748,6 +758,20 @@ class Simple implements ApplicationInterface
 
         // throw the exeception
         throw new ApplicationStoppedException($reason);
+    }
+
+    /**
+     * Finish processing the operation. The application will be stopped without an error output.
+     *
+     * @param string $reason The reason why the operation has been finish
+     *
+     * @return void
+     * @throws \TechDivision\Import\Exceptions\ApplicationFinishedException Is thrown if the application has been finish
+     */
+    public function finish($reason = '')
+    {
+        $this->stopped = true;
+        throw new ApplicationFinishedException($reason);
     }
 
     /**
