@@ -637,18 +637,24 @@ class Simple implements ApplicationInterface
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
         } catch (ApplicationFinishedException $afe) {
-            // rollback the transaction, if single transaction mode has been configured
+            // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
-                $this->getImportProcessor()->getConnection()->rollBack();
+                $this->getImportProcessor()->getConnection()->commit();
             }
-
-            // invoke the event that has to be fired after the application rollbacked the
-            // transaction (if single transaction mode has been activated)
-            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_FAILURE, $this, $afe);
 
             // if a PID has been set (because CSV files has been found),
             // remove it from the PID file to unlock the importer
             $this->unlock();
+
+            // invoke the event that has to be fired before the application has the transaction
+            // committed successfully (if single transaction mode has been activated)
+            $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
+
+            // track the time needed for the import in seconds
+            $endTime = microtime(true) - $startTime;
+
+            // log a debug message that import has been finished
+            $this->getSystemLogger()->notice(sprintf('Finished import with serial %s in %f s', $this->getSerial(), $endTime));
 
             // log the exception message as warning
             $this->log($afe->getMessage(), LogLevel::NOTICE);
@@ -674,17 +680,17 @@ class Simple implements ApplicationInterface
 
             // log a message that the file import failed
             foreach ($this->systemLoggers as $systemLogger) {
-                $systemLogger->error($ase->__toString());
+                $systemLogger->warning($ase->__toString());
             }
 
             // log a message that import has been finished
-            $this->getSystemLogger()->warning(sprintf('Can\'t finish import with serial %s in %f s', $this->getSerial(), $endTime));
+            $this->getSystemLogger()->warning(sprintf('Stopped import with serial %s in %f s', $this->getSerial(), $endTime));
 
             // log the exception message as warning
             $this->log($ase->getMessage(), LogLevel::WARNING);
 
-            // return 1 to signal an error
-            return 1;
+            // return the exception code, 1 by default to signal an error
+            return $ase->getCode();
         } catch (ImportAlreadyRunningException $iare) {
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -753,25 +759,40 @@ class Simple implements ApplicationInterface
     }
 
     /**
-     * Stop processing the operation.
+     * Stop processing the operation immediately and should return an exit code > 0.
      *
-     * @param string $reason The reason why the operation has been stopped
+     * This will stop the operation with an error output and rolling back the single transaction,
+     * if it has been started by the CLI parameter `--single-transaction=true`.
+     *
+     * This method should be used when the import process should be interrupted in case of an
+     * error and to signal the user that something went wrong.
+     *
+     * @param string $reason   The reason why the operation has been stopped
+     * @param int    $exitCode The exit code to use, defaults to 1
      *
      * @return void
      * @throws \TechDivision\Import\Exceptions\ApplicationStoppedException Is thrown if the application has been stopped
      */
-    public function stop($reason)
+    public function stop($reason, $exitCode = 1)
     {
 
         // stop processing the plugins by setting the flag to TRUE
         $this->stopped = true;
 
         // throw the exeception
-        throw new ApplicationStoppedException($reason);
+        throw new ApplicationStoppedException($reason, $exitCode);
     }
 
     /**
-     * Finish processing the operation. The application will be stopped without an error output.
+     * Finish processing the operation immediately and should return an exit code 0.
+     *
+     * This will stop the operation without an error output and commits the single transaction,
+     * if it has been started by the CLI parameter `--single-transaction=true`.
+     *
+     * This method should be used when the import process should be interrupted in case
+     * further processing makes no sense or is not necessary and to signal the user that
+     * everything is as expected.
+     *
      *
      * @param string $reason   The reason why the operation has been finish
      * @param int    $exitCode The exit code to use
