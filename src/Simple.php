@@ -532,10 +532,11 @@ class Simple implements ApplicationInterface
             extract($lastError);
             // query whether we've a fatal/user error
             if ($type === E_ERROR || $type === E_USER_ERROR) {
-                // clean-up the PID file
-                $this->unlock();
                 // log the fatal error message
                 $this->log($message, LogLevel::ERROR);
+
+                // clean-up the PID file
+                $this->unlock();
             }
         }
     }
