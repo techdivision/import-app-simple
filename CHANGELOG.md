@@ -1,3 +1,13 @@
+# Version 17.0.1
+
+## Bugfixes
+
+* None
+
+## Features
+
+* Fix write error message before shutdown
+
 # Version 17.0.0
 
 ## Bugfixes
