@@ -1,3 +1,13 @@
+# Version 17.0.2
+
+## Bugfixes
+
+* Remove third party module ramsey/uuid
+
+## Features
+
+* none
+
 # Version 17.0.1
 
 ## Bugfixes

@@ -4,7 +4,6 @@
     "license": "OSL-3.0",
     "require": {
         "php": ">=7.1.0",
-        "ramsey/uuid": "~3.0",
         "symfony/console": "~2.3,!=2.7.0|~4.0",
         "techdivision/import": "16.*"
     },
