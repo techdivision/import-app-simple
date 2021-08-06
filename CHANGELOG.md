@@ -2,7 +2,7 @@
 
 ## Bugfixes
 
-* None
+* Remove third party module ramsey/uuid
 
 ## Features
 
