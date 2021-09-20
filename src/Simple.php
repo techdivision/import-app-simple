@@ -852,7 +852,7 @@ class Simple implements ApplicationInterface
      *
      * @return void
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->getEmitter()->emit(EventNames::APP_SET_UP, $this);
     }
@@ -863,7 +863,7 @@ class Simple implements ApplicationInterface
      *
      * @return void
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->getEmitter()->emit(EventNames::APP_TEAR_DOWN, $this);
     }
