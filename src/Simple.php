@@ -632,7 +632,7 @@ class Simple implements ApplicationInterface
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
-       } catch (MissingFileException $mfe) {
+        } catch (MissingFileException $mfe) {
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->commit();
@@ -646,7 +646,7 @@ class Simple implements ApplicationInterface
             $this->log($mfe->getMessage(), LogLevel::ERROR);
             
             return $mfe->getCode();
-        } catch (ApplicationFinishedException $afe) {
+        } catch (ApplicationFinishedException $ase) {
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->commit();
@@ -821,13 +821,13 @@ class Simple implements ApplicationInterface
     }
 
     /**
-     * @param string $reason
-     * @param int    $exitCode
+     * @param string $reason   The reason why the operation has been missed
+     * @param int    $exitCode The exit code to use
      *
      * @return void
      * @throws \TechDivision\Import\Exceptions\MissingFileException Is thrown if the file has been missed
      */
-    public function missingFile($reason, $exitCode = 0)
+    public function missingFile($reason, $exitCode)
     {
         // throw the exeception
         throw new MissingFileException($reason, $exitCode);
