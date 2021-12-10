@@ -646,7 +646,7 @@ class Simple implements ApplicationInterface
             $this->log($mfe->getMessage(), LogLevel::ERROR);
             
             return $mfe->getCode();
-        } catch (ApplicationFinishedException $ase) {
+        } catch (ApplicationFinishedException $afe) {
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->commit();
