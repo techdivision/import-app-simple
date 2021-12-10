@@ -20,8 +20,7 @@ use Psr\Container\ContainerInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\FormatterHelper;
-use TechDivision\Import\Exceptions\MissingFileException;
-use TechDivision\Import\Exceptions\OkFileNotEmptyException;
+use TechDivision\Import\Exceptions\ApplicationMissingFileException;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
@@ -632,7 +631,7 @@ class Simple implements ApplicationInterface
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
-        } catch (MissingFileException $mfe) {
+        } catch (ApplicationMissingFileException $amfe) {
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->commit();
@@ -643,9 +642,9 @@ class Simple implements ApplicationInterface
             $this->unlock();
 
             // log the exception message as warning
-            $this->log($mfe->getMessage(), LogLevel::ERROR);
+            $this->log($amfe->getMessage(), LogLevel::WARNING);
             
-            return $mfe->getCode();
+            return $amfe->getCode();
         } catch (ApplicationFinishedException $afe) {
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -728,7 +727,7 @@ class Simple implements ApplicationInterface
             $this->log($iare->getMessage(), LogLevel::WARNING);
 
             // return 1 to signal an error
-            return 1;
+            return $iare->getCode();
         } catch (\Exception $e) {
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -758,7 +757,7 @@ class Simple implements ApplicationInterface
             $this->log($e->getMessage(), LogLevel::ERROR);
 
             // return 1 to signal an error
-            return 1;
+            return $e->getCode();
         } finally {
             // tear down
             $this->tearDown();
@@ -825,12 +824,12 @@ class Simple implements ApplicationInterface
      * @param int    $exitCode The exit code to use
      *
      * @return void
-     * @throws \TechDivision\Import\Exceptions\MissingFileException Is thrown if the file has been missed
+     * @throws \TechDivision\Import\Exceptions\ApplicationMissingFileException Is thrown if the file has been missed
      */
     public function missingFile($reason, $exitCode)
     {
         // throw the exeception
-        throw new MissingFileException($reason, $exitCode);
+        throw new ApplicationMissingFileException($reason, $exitCode);
     }
     
     /**
