@@ -20,6 +20,7 @@ use Psr\Container\ContainerInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\FormatterHelper;
+use TechDivision\Import\Exceptions\InvalidDataException;
 use TechDivision\Import\Exceptions\MissingFileException;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
@@ -645,6 +646,20 @@ class Simple implements ApplicationInterface
             $this->log($mfe->getMessage(), LogLevel::WARNING);
             
             return $mfe->getCode();
+        } catch (InvalidDataException $ide) {
+            // commit the transaction, if single transation mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->commit();
+            }
+
+            // if a PID has been set (because CSV files has been found),
+            // remove it from the PID file to unlock the importer
+            $this->unlock();
+
+            // log the exception message as warning
+            $this->log($ide->getMessage(), LogLevel::NOTICE);
+
+            return $ide->getCode();
         } catch (ApplicationFinishedException $afe) {
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -793,6 +808,19 @@ class Simple implements ApplicationInterface
     }
 
     /**
+     * @param string $message  The message when the import data has been invalid
+     * @param int    $exitCode The exit code to use, defaults to 1
+     *
+     * @return void
+     * @throws \TechDivision\Import\Exceptions\InvalidDataException Is thrown if the application has been stopped
+     */
+    public function invalidDataNoStrict($message, $exitCode)
+    {
+        // throw the exeception
+        throw new InvalidDataException($message, $exitCode);
+    }
+
+    /**
      * Finish processing the operation immediately and should return an exit code 0.
      *
      * This will stop the operation without an error output and commits the single transaction,
@@ -820,16 +848,16 @@ class Simple implements ApplicationInterface
     }
 
     /**
-     * @param string $reason   The reason why the operation has been missed
+     * @param string $message  The message when the import files has been missed
      * @param int    $exitCode The exit code to use
      *
      * @return void
      * @throws \TechDivision\Import\Exceptions\MissingFileException Is thrown if the file has been missed
      */
-    public function missingFile($reason, $exitCode)
+    public function missingFile($message, $exitCode)
     {
         // throw the exeception
-        throw new MissingFileException($reason, $exitCode);
+        throw new MissingFileException($message, $exitCode);
     }
     
     /**
