@@ -20,6 +20,8 @@ use Psr\Container\ContainerInterface;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\FormatterHelper;
+use TechDivision\Import\Exceptions\InvalidDataException;
+use TechDivision\Import\Exceptions\MissingFileException;
 use TechDivision\Import\Utils\LoggerKeys;
 use TechDivision\Import\Utils\EventNames;
 use TechDivision\Import\ApplicationInterface;
@@ -621,7 +623,6 @@ class Simple implements ApplicationInterface
             if ($this->getConfiguration()->isSingleTransaction()) {
                 $this->getImportProcessor()->getConnection()->commit();
             }
-
             // track the time needed for the import in seconds
             $endTime = microtime(true) - $startTime;
 
@@ -631,6 +632,34 @@ class Simple implements ApplicationInterface
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
+        } catch (MissingFileException $mfe) {
+            // commit the transaction, if single transation mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->commit();
+            }
+
+            // if a PID has been set (because CSV files has been found),
+            // remove it from the PID file to unlock the importer
+            $this->unlock();
+
+            // log the exception message as warning
+            $this->log($mfe->getMessage(), LogLevel::WARNING);
+            
+            return $mfe->getCode();
+        } catch (InvalidDataException $ide) {
+            // commit the transaction, if single transation mode has been configured
+            if ($this->getConfiguration()->isSingleTransaction()) {
+                $this->getImportProcessor()->getConnection()->commit();
+            }
+
+            // if a PID has been set (because CSV files has been found),
+            // remove it from the PID file to unlock the importer
+            $this->unlock();
+
+            // log the exception message as warning
+            $this->log($ide->getMessage(), LogLevel::NOTICE);
+
+            return $ide->getCode();
         } catch (ApplicationFinishedException $afe) {
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -713,7 +742,7 @@ class Simple implements ApplicationInterface
             $this->log($iare->getMessage(), LogLevel::WARNING);
 
             // return 1 to signal an error
-            return 1;
+            return $iare->getCode();
         } catch (\Exception $e) {
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -743,7 +772,7 @@ class Simple implements ApplicationInterface
             $this->log($e->getMessage(), LogLevel::ERROR);
 
             // return 1 to signal an error
-            return 1;
+            return $e->getCode();
         } finally {
             // tear down
             $this->tearDown();
@@ -779,6 +808,19 @@ class Simple implements ApplicationInterface
     }
 
     /**
+     * @param string $message  The message when the import data has been invalid
+     * @param int    $exitCode The exit code to use, defaults to 1
+     *
+     * @return void
+     * @throws \TechDivision\Import\Exceptions\InvalidDataException Is thrown if the application has been stopped
+     */
+    public function invalidDataNoStrict($message, $exitCode)
+    {
+        // throw the exeception
+        throw new InvalidDataException($message, $exitCode);
+    }
+
+    /**
      * Finish processing the operation immediately and should return an exit code 0.
      *
      * This will stop the operation without an error output and commits the single transaction,
@@ -805,6 +847,19 @@ class Simple implements ApplicationInterface
         throw new ApplicationFinishedException($reason, $exitCode);
     }
 
+    /**
+     * @param string $message  The message when the import files has been missed
+     * @param int    $exitCode The exit code to use
+     *
+     * @return void
+     * @throws \TechDivision\Import\Exceptions\MissingFileException Is thrown if the file has been missed
+     */
+    public function missingFile($message, $exitCode)
+    {
+        // throw the exeception
+        throw new MissingFileException($message, $exitCode);
+    }
+    
     /**
      * Return's TRUE if the operation has been stopped, else FALSE.
      *

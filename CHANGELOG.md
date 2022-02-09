@@ -1,3 +1,13 @@
+# Version 18.0.0
+
+## Bugfixes
+
+* none
+
+## Features
+
+* Add catch for MissingFileException and InvalidDataException 
+
 # Version 17.0.1
 
 ## Bugfixes
