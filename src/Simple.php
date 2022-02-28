@@ -644,7 +644,7 @@ class Simple implements ApplicationInterface
 
             // log the exception message as warning
             $this->log($mfe->getMessage(), LogLevel::WARNING);
-            
+
             return $mfe->getCode();
         } catch (InvalidDataException $ide) {
             // commit the transaction, if single transation mode has been configured
@@ -742,7 +742,7 @@ class Simple implements ApplicationInterface
             $this->log($iare->getMessage(), LogLevel::WARNING);
 
             // return 1 to signal an error
-            return $iare->getCode();
+            return $iare->getCode() !== 0 ? $iare->getCode() : 1;
         } catch (\Exception $e) {
             // rollback the transaction, if single transaction mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {
@@ -772,7 +772,7 @@ class Simple implements ApplicationInterface
             $this->log($e->getMessage(), LogLevel::ERROR);
 
             // return 1 to signal an error
-            return $e->getCode();
+            return $e->getCode() !== 0 ? $e->getCode() : 1;
         } finally {
             // tear down
             $this->tearDown();
@@ -859,7 +859,7 @@ class Simple implements ApplicationInterface
         // throw the exeception
         throw new MissingFileException($message, $exitCode);
     }
-    
+
     /**
      * Return's TRUE if the operation has been stopped, else FALSE.
      *
