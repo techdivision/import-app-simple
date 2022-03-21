@@ -7,6 +7,7 @@
 ## Features
 
 * Add catch for MissingFileException and InvalidDataException 
+* Update composer with php Version >=^7.3
 
 # Version 17.0.1
 
