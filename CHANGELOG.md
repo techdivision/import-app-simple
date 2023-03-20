@@ -1,3 +1,9 @@
+# Version 18.0.1
+
+## Bugfixes
+
+* PHP 8.x third party library compatibility
+
 # Version 18.0.0
 
 ## Bugfixes
