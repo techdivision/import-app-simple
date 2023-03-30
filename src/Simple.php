@@ -632,6 +632,9 @@ class Simple implements ApplicationInterface
             // invoke the event that has to be fired before the application has the transaction
             // committed successfully (if single transaction mode has been activated)
             $this->getEmitter()->emit(EventNames::APP_PROCESS_TRANSACTION_SUCCESS, $this);
+
+            // Everything went fine, so return 0
+            return 0;
         } catch (MissingFileException $mfe) {
             // commit the transaction, if single transation mode has been configured
             if ($this->getConfiguration()->isSingleTransaction()) {

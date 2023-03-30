@@ -1,3 +1,9 @@
+# Version 18.0.2
+
+## Bugfixes
+
+* Fix smyfony/console version 5 compatibility
+
 # Version 18.0.1
 
 ## Bugfixes
