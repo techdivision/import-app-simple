@@ -1,3 +1,9 @@
+# Version 18.0.3
+
+## Bugfixes
+
+* Start fix php8.2 deprecated warnings
+
 # Version 18.0.2
 
 ## Bugfixes

@@ -169,7 +169,7 @@ class Simple implements ApplicationInterface
      *
      * @var \TechDivision\Import\Handlers\GenericFileHandlerInterface
      */
-    protected $genericFileHanlder;
+    protected $genericFileHandler;
 
     /**
      * The PID file handler instance.
