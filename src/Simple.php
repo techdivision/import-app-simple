@@ -962,10 +962,11 @@ class Simple implements ApplicationInterface
      */
     protected function mapLogLevelToStyle($logLevel)
     {
+        $levelKey = $logLevel ?? '';
 
         // query whether or not the log level is mapped
-        if (isset($this->logLevelStyleMapping[$logLevel])) {
-            return $this->logLevelStyleMapping[$logLevel];
+        if (isset($this->logLevelStyleMapping[$levelKey])) {
+            return $this->logLevelStyleMapping[$levelKey];
         }
 
         // return the default style => info
