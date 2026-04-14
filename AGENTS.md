@@ -71,6 +71,47 @@ $application->run();
 - **Backward Compatibility**: Alte Anwendungen sollten noch funktionieren
 - **CLI-Kompatibilität**: Beachte CLI-Integration
 
+## Häufige Use Cases
+
+### CLI-Integration Beispiele
+```php
+// In import-cli Module
+$application = new Simple($configuration);
+$application->run();
+// Orchestriert vollständigen Import-Prozess
+```
+
+### Szenarien
+1. **CLI Command Integration**: Commands nutzen Simple für Ausführung
+2. **Batch-Imports**: Automatisierte Nightly-Imports
+3. **Cron-Job Execution**: Cron-Jobs nutzen Simple für Process-Execution
+
+## Performance-Überlegungen
+
+- **Startup-Overhead**: ~100-200ms für Application-Init und DI-Setup
+- **Single-Process**: Keine Parallelisierung - sequenziell linear
+- **Memory-Baseline**: ~30-50MB base Memory für Framework
+- **Importer-Größe**: 10k Products ~2-3 Minuten, 100k ~20-30 Minuten
+- **Bottleneck**: Usually DB-Operationen, nicht Application-Layer
+
+## Verwandte Module
+
+- **import-cli**: Nutzt Simple für CLI-Commands
+- **import-cli-simple**: Master CLI nutzt Simple Application
+- **import-app-simple** ← **diese Datei** (Framework!)
+- **import**: Core Framework
+
+## Troubleshooting & FAQ
+
+**Q: Import läuft extrem langsam**
+- A: Simple selbst ist selten Bottleneck. Prüfe: DB-Indices, Network-Latenz, DBAL-Performance.
+
+**Q: Application crashed mitten im Import**
+- A: Single-Process bedeutet: kein Restart möglich. Prüfe Memory-Limit: `php.ini memory_limit`
+
+**Q: Wie kann ich Multi-Threaded verwenden?**
+- A: Simple unterstützt das nicht. Nutze `pacemaker/import-app-async` oder ähnlich für Parallelisierung.
+
 ## Bekannte Einschränkungen
 
 - **Single-Threaded**: Nicht für Multi-Threaded Imports
